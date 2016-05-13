@@ -320,6 +320,8 @@ enum {
   // an official value for Lanai. As soon as one is allocated, this enum will be
   // updated to use it.
   EM_LANAI         = 0x8123, // Lanai 32-bit processor
+
+  EM_FALCON        = 0x3450, // Falcon
 };
 
 // Object file classes.
@@ -612,6 +614,11 @@ enum {
 // ELF Relocation types for WebAssembly
 enum {
 #include "ELFRelocs/WebAssembly.def"
+};
+
+// ELF Relocation types for Falcon
+enum {
+#include "ELFRelocs/Falcon.def"
 };
 
 #undef ELF_RELOC

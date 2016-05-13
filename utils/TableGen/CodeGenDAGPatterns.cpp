@@ -1254,8 +1254,7 @@ static unsigned GetNumNodeResults(Record *Operator, CodeGenDAGPatterns &CDP) {
     }
 
     // Add on one implicit def if it has a resolvable type.
-    if (InstInfo.HasOneImplicitDefWithKnownVT(CDP.getTargetInfo()) !=MVT::Other)
-      ++NumDefsToAdd;
+    NumDefsToAdd += InstInfo.ImplicitDefsWithKnownVT(CDP.getTargetInfo()).size();
     return NumDefsToAdd;
   }
 
@@ -1839,11 +1838,11 @@ bool TreePatternNode::ApplyTypeConstraints(TreePattern &TP, bool NotRegisters) {
 
       // FIXME: Generalize to multiple possible types and multiple possible
       // ImplicitDefs.
-      MVT::SimpleValueType VT =
-        InstInfo.HasOneImplicitDefWithKnownVT(CDP.getTargetInfo());
+      SmallVector<MVT::SimpleValueType, 4> VTs =
+        InstInfo.ImplicitDefsWithKnownVT(CDP.getTargetInfo());
 
-      if (VT != MVT::Other)
-        MadeChange |= UpdateNodeType(ResNo, VT, TP);
+      for (auto VT : VTs)
+        MadeChange |= UpdateNodeType(ResNo++, VT, TP);
     }
 
     // If this is an INSERT_SUBREG, constrain the source and destination VTs to

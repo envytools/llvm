@@ -1,0 +1,23 @@
+# RUN: llvm-mc --disassemble %s -triple=falcon3 | FileCheck %s
+# RUN: llvm-mc --disassemble %s -triple=falcon4 | FileCheck %s
+
+# CHECK: ret
+0xf8 0x00
+# CHECK: iret
+0xf8 0x01
+# CHECK: hlt
+0xf8 0x02
+# CHECK: xdwait
+0xf8 0x03
+# CHECK: xdbar
+0xf8 0x06
+# CHECK: xcwait
+0xf8 0x07
+# CHECK: trap 0
+0xf8 0x08
+# CHECK: trap 1
+0xf8 0x09
+# CHECK: trap 2
+0xf8 0x0a
+# CHECK: trap 3
+0xf8 0x0b

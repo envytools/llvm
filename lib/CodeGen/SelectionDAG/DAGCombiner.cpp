@@ -3118,7 +3118,8 @@ SDValue DAGCombiner::visitAND(SDNode *N) {
       if ((ORI->getAPIntValue() & N1C->getAPIntValue()) == N1C->getAPIntValue())
         return N1;
   // fold (and (any_ext V), c) -> (zero_ext V) if 'and' only clears top bits.
-  if (N1C && N0.getOpcode() == ISD::ANY_EXTEND) {
+  if (N1C && N0.getOpcode() == ISD::ANY_EXTEND &&
+      TLI.isOperationLegal(ISD::ZERO_EXTEND, N0.getValueType())) {
     SDValue N0Op0 = N0.getOperand(0);
     APInt Mask = ~N1C->getAPIntValue();
     Mask = Mask.trunc(N0Op0.getValueSizeInBits());

@@ -53,6 +53,7 @@ public:
     avr,        // AVR: Atmel AVR microcontroller
     bpfel,      // eBPF or extended BPF or 64-bit BPF (little endian)
     bpfeb,      // eBPF or extended BPF or 64-bit BPF (big endian)
+    falcon,     // Falcon: falcon
     hexagon,    // Hexagon: hexagon
     mips,       // MIPS: mips, mipsallegrex
     mipsel,     // MIPSEL: mipsel, mipsallegrexel
@@ -114,7 +115,12 @@ public:
 
     KalimbaSubArch_v3,
     KalimbaSubArch_v4,
-    KalimbaSubArch_v5
+    KalimbaSubArch_v5,
+
+    FalconSubArch_v0,
+    FalconSubArch_v3,
+    FalconSubArch_v4,
+    FalconSubArch_v5,
   };
   enum VendorType {
     UnknownVendor,

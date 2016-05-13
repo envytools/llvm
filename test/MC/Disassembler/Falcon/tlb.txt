@@ -1,0 +1,21 @@
+# RUN: llvm-mc --disassemble %s -triple=falcon3 | FileCheck %s
+# RUN: llvm-mc --disassemble %s -triple=falcon4 | FileCheck %s
+
+# CHECK: itlb %r0
+0xf9 0x08
+# CHECK: itlb %r15
+0xf9 0xf8
+
+# CHECK: ptlb %r0, %r0
+0xfe 0x00 0x02
+# CHECK: ptlb %r0, %r15
+0xfe 0xf0 0x02
+# CHECK: ptlb %r15, %r0
+0xfe 0x0f 0x02
+
+# CHECK: vtlb %r0, %r0
+0xfe 0x00 0x03
+# CHECK: vtlb %r0, %r15
+0xfe 0xf0 0x03
+# CHECK: vtlb %r15, %r0
+0xfe 0x0f 0x03

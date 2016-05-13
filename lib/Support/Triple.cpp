@@ -28,6 +28,7 @@ const char *Triple::getArchTypeName(ArchType Kind) {
   case avr:         return "avr";
   case bpfel:       return "bpfel";
   case bpfeb:       return "bpfeb";
+  case falcon:      return "falcon";
   case hexagon:     return "hexagon";
   case mips:        return "mips";
   case mipsel:      return "mipsel";
@@ -100,6 +101,8 @@ const char *Triple::getArchTypePrefix(ArchType Kind) {
 
   case bpfel:
   case bpfeb:       return "bpf";
+
+  case falcon:      return "falcon";
 
   case sparcv9:
   case sparcel:
@@ -240,6 +243,7 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("armeb", armeb)
     .Case("avr", avr)
     .StartsWith("bpf", BPFArch)
+    .Case("falcon", falcon)
     .Case("mips", mips)
     .Case("mipsel", mipsel)
     .Case("mips64", mips64)
@@ -383,6 +387,7 @@ static Triple::ArchType parseArch(StringRef ArchName) {
     .Case("spir64", Triple::spir64)
     .StartsWith("kalimba", Triple::kalimba)
     .Case("lanai", Triple::lanai)
+    .StartsWith("falcon", Triple::falcon)
     .Case("shave", Triple::shave)
     .Case("wasm32", Triple::wasm32)
     .Case("wasm64", Triple::wasm64)
@@ -489,6 +494,10 @@ static Triple::SubArchType parseSubArch(StringRef SubArchName) {
       .EndsWith("kalimba3", Triple::KalimbaSubArch_v3)
       .EndsWith("kalimba4", Triple::KalimbaSubArch_v4)
       .EndsWith("kalimba5", Triple::KalimbaSubArch_v5)
+      .EndsWith("falcon0", Triple::FalconSubArch_v0)
+      .EndsWith("falcon3", Triple::FalconSubArch_v3)
+      .EndsWith("falcon4", Triple::FalconSubArch_v4)
+      .EndsWith("falcon5", Triple::FalconSubArch_v5)
       .Default(Triple::NoSubArch);
 
   // ARM sub arch.
@@ -572,6 +581,7 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::avr:
   case Triple::bpfeb:
   case Triple::bpfel:
+  case Triple::falcon:
   case Triple::hexagon:
   case Triple::lanai:
   case Triple::hsail:
@@ -1126,6 +1136,7 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::hsail:
   case llvm::Triple::spir:
   case llvm::Triple::kalimba:
+  case llvm::Triple::falcon:
   case llvm::Triple::lanai:
   case llvm::Triple::shave:
   case llvm::Triple::wasm32:
@@ -1187,6 +1198,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::armeb:
   case Triple::hexagon:
   case Triple::kalimba:
+  case Triple::falcon:
   case Triple::le32:
   case Triple::mips:
   case Triple::mipsel:
@@ -1230,6 +1242,7 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::avr:
   case Triple::hexagon:
   case Triple::kalimba:
+  case Triple::falcon:
   case Triple::lanai:
   case Triple::msp430:
   case Triple::r600:
@@ -1292,6 +1305,7 @@ Triple Triple::getBigEndianArchVariant() const {
   case Triple::hsail64:
   case Triple::hsail:
   case Triple::kalimba:
+  case Triple::falcon:
   case Triple::le32:
   case Triple::le64:
   case Triple::msp430:
@@ -1368,6 +1382,7 @@ Triple Triple::getLittleEndianArchVariant() const {
   case Triple::hsail64:
   case Triple::hsail:
   case Triple::kalimba:
+  case Triple::falcon:
   case Triple::le32:
   case Triple::le64:
   case Triple::mips64el:

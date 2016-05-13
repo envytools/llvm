@@ -14,6 +14,7 @@
 #ifndef LLVM_UTILS_TABLEGEN_CODEGENINSTRUCTION_H
 #define LLVM_UTILS_TABLEGEN_CODEGENINSTRUCTION_H
 
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/CodeGen/MachineValueType.h"
 #include "llvm/Support/SMLoc.h"
@@ -272,11 +273,11 @@ template <typename T> class ArrayRef;
 
     CodeGenInstruction(Record *R);
 
-    /// HasOneImplicitDefWithKnownVT - If the instruction has at least one
+    /// ImplicitDefsWithKnownVT - If the instruction has at least one
     /// implicit def and it has a known VT, return the VT, otherwise return
     /// MVT::Other.
-    MVT::SimpleValueType
-      HasOneImplicitDefWithKnownVT(const CodeGenTarget &TargetInfo) const;
+    SmallVector<MVT::SimpleValueType, 4>
+      ImplicitDefsWithKnownVT(const CodeGenTarget &TargetInfo) const;
 
 
     /// FlattenAsmStringVariants - Flatten the specified AsmString to only

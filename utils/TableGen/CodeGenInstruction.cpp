@@ -363,21 +363,24 @@ CodeGenInstruction::CodeGenInstruction(Record *R)
   }
 }
 
-/// HasOneImplicitDefWithKnownVT - If the instruction has at least one
+/// ImplicitDefsWithKnownVT - If the instruction has at least one
 /// implicit def and it has a known VT, return the VT, otherwise return
 /// MVT::Other.
-MVT::SimpleValueType CodeGenInstruction::
-HasOneImplicitDefWithKnownVT(const CodeGenTarget &TargetInfo) const {
-  if (ImplicitDefs.empty()) return MVT::Other;
+SmallVector<MVT::SimpleValueType, 4> CodeGenInstruction::
+ImplicitDefsWithKnownVT(const CodeGenTarget &TargetInfo) const {
+  SmallVector<MVT::SimpleValueType, 4> Res;
 
-  // Check to see if the first implicit def has a resolvable type.
-  Record *FirstImplicitDef = ImplicitDefs[0];
-  assert(FirstImplicitDef->isSubClassOf("Register"));
-  const std::vector<MVT::SimpleValueType> &RegVTs =
-    TargetInfo.getRegisterVTs(FirstImplicitDef);
-  if (RegVTs.size() == 1)
-    return RegVTs[0];
-  return MVT::Other;
+  for (auto ImplicitDef : ImplicitDefs) {
+    // Check to see if the first implicit def has a resolvable type.
+    assert(ImplicitDef->isSubClassOf("Register"));
+    const std::vector<MVT::SimpleValueType> &RegVTs =
+      TargetInfo.getRegisterVTs(ImplicitDef);
+    if (RegVTs.size() == 1)
+      Res.push_back(RegVTs[0]);
+    else
+      break;
+  }
+  return Res;
 }
 
 

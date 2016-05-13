@@ -844,13 +844,14 @@ EmitResultInstructionAsOperand(const TreePatternNode *N,
   if (isRoot && !Pattern.getDstRegs().empty()) {
     // If the root came from an implicit def in the instruction handling stuff,
     // don't re-add it.
-    Record *HandledReg = nullptr;
-    if (II.HasOneImplicitDefWithKnownVT(CGT) != MVT::Other)
-      HandledReg = II.ImplicitDefs[0];
+    SmallVector<Record *, 4> HandledRegs;
+    unsigned NumImplicit = II.ImplicitDefsWithKnownVT(CGT).size();
+    for (unsigned i = 0; i != NumImplicit; i++)
+      HandledRegs.push_back(II.ImplicitDefs[i]);
 
     for (unsigned i = 0; i != Pattern.getDstRegs().size(); ++i) {
       Record *Reg = Pattern.getDstRegs()[i];
-      if (!Reg->isSubClassOf("Register") || Reg == HandledReg) continue;
+      if (!Reg->isSubClassOf("Register") || std::find(HandledRegs.begin(), HandledRegs.end(), Reg) != HandledRegs.end()) continue;
       ResultVTs.push_back(getRegisterValueType(Reg, CGT));
     }
   }
@@ -962,19 +963,20 @@ void MatcherGen::EmitResultCode() {
   if (!Pattern.getDstRegs().empty()) {
     // If the root came from an implicit def in the instruction handling stuff,
     // don't re-add it.
-    Record *HandledReg = nullptr;
+    SmallVector<Record *, 4> HandledRegs;
     const TreePatternNode *DstPat = Pattern.getDstPattern();
     if (!DstPat->isLeaf() &&DstPat->getOperator()->isSubClassOf("Instruction")){
       const CodeGenTarget &CGT = CGP.getTargetInfo();
       CodeGenInstruction &II = CGT.getInstruction(DstPat->getOperator());
 
-      if (II.HasOneImplicitDefWithKnownVT(CGT) != MVT::Other)
-        HandledReg = II.ImplicitDefs[0];
+      unsigned NumImplicit = II.ImplicitDefsWithKnownVT(CGT).size();
+      for (unsigned i = 0; i != NumImplicit; i++)
+        HandledRegs.push_back(II.ImplicitDefs[i]);
     }
 
     for (unsigned i = 0; i != Pattern.getDstRegs().size(); ++i) {
       Record *Reg = Pattern.getDstRegs()[i];
-      if (!Reg->isSubClassOf("Register") || Reg == HandledReg) continue;
+      if (!Reg->isSubClassOf("Register") || std::find(HandledRegs.begin(), HandledRegs.end(), Reg) != HandledRegs.end()) continue;
       ++NumSrcResults;
     }
   }

@@ -851,6 +851,8 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
       return "ELF32-wasm";
     case ELF::EM_AMDGPU:
       return "ELF32-amdgpu";
+    case ELF::EM_FALCON:
+      return "ELF32-falcon";
     default:
       return "ELF32-unknown";
     }
@@ -937,6 +939,9 @@ unsigned ELFObjectFile<ELFT>::getArch() const {
          && EF.getHeader()->e_ident[ELF::EI_OSABI] == ELF::ELFOSABI_AMDGPU_HSA
          && IsLittleEndian) ?
       Triple::amdgcn : Triple::UnknownArch;
+
+  case ELF::EM_FALCON:
+    return Triple::falcon;
 
   default:
     return Triple::UnknownArch;
