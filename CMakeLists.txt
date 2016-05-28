@@ -226,6 +226,7 @@ set(LLVM_ALL_TARGETS
   AMDGPU
   ARM
   BPF
+  Falcon
   Hexagon
   Mips
   MSP430
