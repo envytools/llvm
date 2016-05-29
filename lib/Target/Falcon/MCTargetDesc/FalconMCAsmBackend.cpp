@@ -10,6 +10,7 @@
 #include "MCTargetDesc/FalconMCTargetDesc.h"
 #include "MCTargetDesc/FalconMCFixups.h"
 #include "llvm/MC/MCAsmBackend.h"
+#include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCELFObjectWriter.h"
 #include "llvm/MC/MCFixupKindInfo.h"
 #include "llvm/MC/MCInst.h"
@@ -17,17 +18,57 @@
 
 using namespace llvm;
 
-static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
-  switch (Kind) {
+static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value, MCContext *Ctx) {
+  switch (unsigned(Fixup.getKind())) {
   default:
     return Value;
 
-  case Falcon::FK_FALCON_HI16:
+  case Falcon::FK_FALCON_S8:
+  case FK_PCRel_1:
+    if (Ctx && Value >= 0x80 && Value < uint64_t(-0x80))
+      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+    return Value;
+
+  case Falcon::FK_FALCON_S16:
+  case FK_PCRel_2:
+    if (Ctx && Value >= 0x8000 && Value < uint64_t(-0x8000))
+      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+    return Value;
+
+  case Falcon::FK_FALCON_8:
+    if (Ctx && Value >= 0x100)
+      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+    return Value;
+
+  case Falcon::FK_FALCON_16:
+    if (Ctx && Value >= 0x10000)
+      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+    return Value;
+
+  case Falcon::FK_FALCON_24:
+    if (Ctx && Value >= 0x1000000)
+      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+    return Value;
+
   case Falcon::FK_FALCON_HI8:
+    if (Ctx && Value >= 0x1000000)
+      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+    // fallthru
+  case Falcon::FK_FALCON_HI16:
     return Value >> 16;
+
   case Falcon::FK_FALCON_8S1:
+    if (Ctx && Value >= 0x200)
+      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+    if (Ctx && Value & 1)
+      Ctx->reportError(Fixup.getLoc(), "fixup value unaligned");
     return Value >> 1;
+
   case Falcon::FK_FALCON_8S2:
+    if (Ctx && Value >= 0x400)
+      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+    if (Ctx && Value & 3)
+      Ctx->reportError(Fixup.getLoc(), "fixup value unaligned");
     return Value >> 2;
   }
 }
@@ -64,6 +105,11 @@ public:
       return true;
     return false;
   }
+
+  void processFixupValue(const MCAssembler &Asm, const MCAsmLayout &Layout,
+                         const MCFixup &Fixup, const MCFragment *DF,
+                         const MCValue &Target, uint64_t &Value,
+                         bool &IsResolved) override;
 };
 } // end anonymous namespace
 
@@ -97,15 +143,25 @@ void FalconMCAsmBackend::applyFixup(const MCFixup &Fixup, char *Data,
   MCFixupKind Kind = Fixup.getKind();
   unsigned Offset = Fixup.getOffset();
   unsigned Size = (getFixupKindInfo(Kind).TargetSize + 7) / 8;
-  Value = adjustFixupValue(Fixup.getKind(), Value);
+  Value = adjustFixupValue(Fixup, Value, nullptr);
 
   assert(Offset + Size <= DataSize && "Invalid fixup offset!");
-
-  // XXX verify...
 
   // Little-endian insertion of Size bytes.
   for (unsigned I = 0; I != Size; ++I)
     Data[Offset + I] |= uint8_t(Value >> (I * 8));
+}
+
+void FalconMCAsmBackend::processFixupValue(
+    const MCAssembler &Asm, const MCAsmLayout &Layout, const MCFixup &Fixup,
+    const MCFragment *DF, const MCValue &Target, uint64_t &Value,
+    bool &IsResolved) {
+
+  // Try to get the encoded value for the fixup as-if we're mapping it into
+  // the instruction. This allows adjustFixupValue() to issue a diagnostic
+  // if the value is invalid.
+  if (IsResolved)
+    (void)adjustFixupValue(Fixup, Value, &Asm.getContext());
 }
 
 MCAsmBackend *llvm::createFalconMCAsmBackend(const Target &T,
