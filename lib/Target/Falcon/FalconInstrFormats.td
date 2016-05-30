@@ -20,6 +20,34 @@ class InstFalcon<int size, dag outs, dag ins, string asmstr, list<dag> pattern>
   let Pattern = pattern;
 }
 
+// Class used for mapping two-address variants to three-address variants.
+
+class FalconThreeInst<string Key, string Value> {
+  string ThreeKey = Key;
+  string ThreeValue = Value;
+}
+
+def getThreeOperandOpcode : InstrMapping {
+  let FilterClass = "FalconThreeInst";
+  let RowFields = ["ThreeKey"];
+  let ColFields = ["ThreeValue"];
+  let KeyCol = ["2"];
+  let ValueCols = [["3"]];
+}
+
+class FalconRelaxInst<string Key, string Value> {
+  string RelaxKey = Key;
+  string RelaxValue = Value;
+}
+
+def getRelaxedOpcode : InstrMapping {
+  let FilterClass = "FalconRelaxInst";
+  let RowFields = ["RelaxKey"];
+  let ColFields = ["RelaxValue"];
+  let KeyCol = ["PC8"];
+  let ValueCols = [["PC16"]];
+}
+
 class Pseudo<int size, dag outs, dag ins, string asmstr, list<dag> pattern>
   : InstFalcon<size, outs, ins, asmstr, pattern> {
   let isPseudo = 1;
@@ -516,19 +544,23 @@ class InstUSRMR<bits<4> op, string asmname, list<dag> pattern>
 
 // Unsized, Jump Relative, Imm8
 class InstUJRI8<bits<8> op, string asmname, list<dag> pattern>
-  : InstOI8<0xf4, op, (outs), (ins pcrel8:$I8), asmname # "\t$I8", pattern>;
+  : InstOI8<0xf4, op, (outs), (ins pcrel8:$I8), asmname # "\t$I8", pattern>,
+    FalconRelaxInst<asmname, "PC8">;
 
 // Unsized, Jump Relative, Imm16
 class InstUJRI16<bits<8> op, string asmname, list<dag> pattern>
-  : InstOI16<0xf5, op, (outs), (ins pcrel16:$I16), asmname # "\t$I16", pattern>;
+  : InstOI16<0xf5, op, (outs), (ins pcrel16:$I16), asmname # "\t$I16", pattern>,
+    FalconRelaxInst<asmname, "PC16">;
 
 // Unsized, Jump Relative, Imm8
 class InstUJRFI8<bits<4> op, string asmname, list<dag> pattern>
-  : InstOFI8<0xf4, op, (outs), (ins PRED:$F, pcrel8:$I8), asmname # "\t$F, $I8", pattern>;
+  : InstOFI8<0xf4, op, (outs), (ins PRED:$F, pcrel8:$I8), asmname # "\t$F, $I8", pattern>,
+    FalconRelaxInst<asmname, "PC8">;
 
 // Unsized, Jump Relative, Imm16
 class InstUJRFI16<bits<4> op, string asmname, list<dag> pattern>
-  : InstOFI16<0xf5, op, (outs), (ins PRED:$F, pcrel16:$I16), asmname # "\t$F, $I16", pattern>;
+  : InstOFI16<0xf5, op, (outs), (ins PRED:$F, pcrel16:$I16), asmname # "\t$F, $I16", pattern>,
+    FalconRelaxInst<asmname, "PC16">;
 
 // Unsized, Sink, Imm8
 class InstUSI8<bits<8> op, Immediate mimm8, string asmname, list<dag> pattern>
@@ -541,18 +573,3 @@ class InstUSI16<bits<8> op, Immediate mimm16, string asmname, list<dag> pattern>
 // Unsized, Misc
 class InstUM<bits<8> op, string asmname, list<dag> pattern>
   : InstO<0xf8, op, (outs), (ins), asmname, pattern>;
-
-// Class used for mapping two-address variants to three-address variants.
-
-class FalconThreeInst<string Key, string Value> {
-  string ThreeKey = Key;
-  string ThreeValue = Value;
-}
-
-def getThreeOperandOpcode : InstrMapping {
-  let FilterClass = "FalconThreeInst";
-  let RowFields = ["ThreeKey"];
-  let ColFields = ["ThreeValue"];
-  let KeyCol = ["2"];
-  let ValueCols = [["3"]];
-}

@@ -142,23 +142,19 @@ def imm32 : Immediate<i32, [{
 
 // pcrels.
 
-class PCRelAsmOperand<string size> : ImmediateAsmOperand<"PCRel"##size> {
-  let PredicateMethod = "isImm";
-//  let ParserMethod = "parsePCRel"##size;
-}
 class PCRelOperand<ValueType vt, AsmOperandClass asmop> : Operand<vt> {
   let PrintMethod = "printPCRelOperand";
-//  let ParserMatchClass = asmop;
+  let ParserMatchClass = asmop;
 }
-def PCRel8 : PCRelAsmOperand<"8">;
-def pcrel8 : PCRelOperand<OtherVT, PCRel8> {
-  let EncoderMethod = "getPC8Encoding";
-  let DecoderMethod = "decodePCOperand<8>";
-}
-def PCRel16 : PCRelAsmOperand<"16">;
+def PCRel16 : ImmediateAsmOperand<"PCRel16">;
 def pcrel16 : PCRelOperand<OtherVT, PCRel16> {
   let EncoderMethod = "getPC16Encoding";
   let DecoderMethod = "decodePCOperand<16>";
+}
+def PCRel8 : ImmediateAsmOperand<"PCRel8", [PCRel16]>;
+def pcrel8 : PCRelOperand<OtherVT, PCRel8> {
+  let EncoderMethod = "getPC8Encoding";
+  let DecoderMethod = "decodePCOperand<8>";
 }
 
 // Memory operands.

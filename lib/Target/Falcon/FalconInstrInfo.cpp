@@ -15,6 +15,7 @@
 #include "FalconInstrInfo.h"
 #include "FalconSubtarget.h"
 #include "FalconTargetMachine.h"
+#include "MCTargetDesc/FalconMCInstrMap.h"
 #include "llvm/CodeGen/LiveVariables.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
@@ -25,7 +26,6 @@
 #include "llvm/ADT/SmallVector.h"
 
 #define GET_INSTRINFO_CTOR_DTOR
-#define GET_INSTRMAP_INFO
 #include "FalconGenInstrInfo.inc"
 
 using namespace llvm;

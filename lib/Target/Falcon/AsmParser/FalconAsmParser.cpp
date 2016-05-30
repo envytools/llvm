@@ -263,6 +263,8 @@ public:
   bool isU24Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U24) || isImm(0, 0xffffff, true); }
   bool isU24XImm() const { return isExpr(FalconMCExpr::VK_Falcon_U24) || isImm(0, 0xffffff, false); }
   bool isU32Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U32) || isImm(0, 0xffffffff, true); }
+  bool isPCRel8() const { return isExpr(FalconMCExpr::VK_Falcon_None) || isExpr(FalconMCExpr::VK_Falcon_PC8) ; }
+  bool isPCRel16() const { return isExpr(FalconMCExpr::VK_Falcon_None) || isExpr(FalconMCExpr::VK_Falcon_PC16) ; }
 };
 
 class FalconAsmParser : public MCTargetAsmParser {

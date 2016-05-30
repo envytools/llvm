@@ -34,6 +34,8 @@ public:
     VK_Falcon_LO16,
     VK_Falcon_HI16,
     VK_Falcon_HI8,
+    VK_Falcon_PC8,
+    VK_Falcon_PC16,
   };
 
 private:

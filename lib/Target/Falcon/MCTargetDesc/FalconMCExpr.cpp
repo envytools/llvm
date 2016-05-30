@@ -55,6 +55,8 @@ bool FalconMCExpr::printVariantKind(raw_ostream &OS, VariantKind Kind)
   case VK_Falcon_LO16:     OS << "%lo16(";  break;
   case VK_Falcon_HI16:     OS << "%hi16(";  break;
   case VK_Falcon_HI8:      OS << "%hi8(";  break;
+  case VK_Falcon_PC8:      OS << "%pc8(";  break;
+  case VK_Falcon_PC16:     OS << "%pc16(";  break;
   }
   return closeParen;
 }
@@ -71,21 +73,26 @@ FalconMCExpr::VariantKind FalconMCExpr::parseVariantKind(StringRef name)
     .Case("lo16",  VK_Falcon_LO16)
     .Case("hi16",  VK_Falcon_HI16)
     .Case("hi8",   VK_Falcon_HI8)
+    .Case("pc8",   VK_Falcon_PC8)
+    .Case("pc16",  VK_Falcon_PC16)
     .Default(VK_Falcon_None);
 }
 
 unsigned FalconMCExpr::getFixupKind(FalconMCExpr::VariantKind Kind) {
+  // XXX remove me?
   switch (Kind) {
   default: llvm_unreachable("Unhandled FalconMCExpr::VariantKind");
   case VK_Falcon_S8:         return Falcon::FK_FALCON_S8;
   case VK_Falcon_S16:        return Falcon::FK_FALCON_S16;
-  case VK_Falcon_U8:         return Falcon::FK_FALCON_8;
-  case VK_Falcon_U16:        return Falcon::FK_FALCON_16;
-  case VK_Falcon_U24:        return Falcon::FK_FALCON_24;
-  case VK_Falcon_U32:        return Falcon::FK_FALCON_32;
+  case VK_Falcon_U8:         return Falcon::FK_FALCON_U8;
+  case VK_Falcon_U16:        return Falcon::FK_FALCON_U16;
+  case VK_Falcon_U24:        return Falcon::FK_FALCON_U24;
+  case VK_Falcon_U32:        return Falcon::FK_FALCON_U32;
   case VK_Falcon_LO16:       return Falcon::FK_FALCON_LO16;
   case VK_Falcon_HI16:       return Falcon::FK_FALCON_HI16;
   case VK_Falcon_HI8:        return Falcon::FK_FALCON_HI8;
+  case VK_Falcon_PC8:        return Falcon::FK_FALCON_PC8;
+  case VK_Falcon_PC16:       return Falcon::FK_FALCON_PC16;
   }
 }
 

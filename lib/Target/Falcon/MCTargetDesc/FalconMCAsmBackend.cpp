@@ -8,13 +8,18 @@
 //===----------------------------------------------------------------------===//
 
 #include "MCTargetDesc/FalconMCTargetDesc.h"
+#include "MCTargetDesc/FalconMCExpr.h"
 #include "MCTargetDesc/FalconMCFixups.h"
+#include "MCTargetDesc/FalconMCInstrMap.h"
 #include "llvm/MC/MCAsmBackend.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCELFObjectWriter.h"
 #include "llvm/MC/MCFixupKindInfo.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCObjectWriter.h"
+
+#define GET_INSTRMAP_INFO
+#include "FalconGenInstrInfo.inc"
 
 using namespace llvm;
 
@@ -24,28 +29,30 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value, MCContext
     return Value;
 
   case Falcon::FK_FALCON_S8:
+  case Falcon::FK_FALCON_PC8:
   case FK_PCRel_1:
     if (Ctx && Value >= 0x80 && Value < uint64_t(-0x80))
       Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
     return Value;
 
   case Falcon::FK_FALCON_S16:
+  case Falcon::FK_FALCON_PC16:
   case FK_PCRel_2:
     if (Ctx && Value >= 0x8000 && Value < uint64_t(-0x8000))
       Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
     return Value;
 
-  case Falcon::FK_FALCON_8:
+  case Falcon::FK_FALCON_U8:
     if (Ctx && Value >= 0x100)
       Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
     return Value;
 
-  case Falcon::FK_FALCON_16:
+  case Falcon::FK_FALCON_U16:
     if (Ctx && Value >= 0x10000)
       Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
     return Value;
 
-  case Falcon::FK_FALCON_24:
+  case Falcon::FK_FALCON_U24:
     if (Ctx && Value >= 0x1000000)
       Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
     return Value;
@@ -57,14 +64,14 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value, MCContext
   case Falcon::FK_FALCON_HI16:
     return Value >> 16;
 
-  case Falcon::FK_FALCON_8S1:
+  case Falcon::FK_FALCON_U8S1:
     if (Ctx && Value >= 0x200)
       Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
     if (Ctx && Value & 1)
       Ctx->reportError(Fixup.getLoc(), "fixup value unaligned");
     return Value >> 1;
 
-  case Falcon::FK_FALCON_8S2:
+  case Falcon::FK_FALCON_U8S2:
     if (Ctx && Value >= 0x400)
       Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
     if (Ctx && Value & 3)
@@ -85,18 +92,11 @@ public:
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const override;
   void applyFixup(const MCFixup &Fixup, char *Data, unsigned DataSize,
                   uint64_t Value, bool IsPCRel) const override;
-  // XXX
-  bool mayNeedRelaxation(const MCInst &Inst) const override {
-    return false;
-  }
+  bool mayNeedRelaxation(const MCInst &Inst) const override;
   bool fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value,
                             const MCRelaxableFragment *Fragment,
-                            const MCAsmLayout &Layout) const override {
-    return false;
-  }
-  void relaxInstruction(const MCInst &Inst, MCInst &Res) const override {
-    llvm_unreachable("Falcon does do not have assembler relaxation");
-  }
+                            const MCAsmLayout &Layout) const override;
+  void relaxInstruction(const MCInst &Inst, MCInst &Res) const override;
   MCObjectWriter *createObjectWriter(raw_pwrite_stream &OS) const override {
     return createFalconELFObjectWriter(OS, 0);
   }
@@ -116,17 +116,22 @@ public:
 const MCFixupKindInfo &
 FalconMCAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
   const static MCFixupKindInfo Infos[Falcon::NumTargetFixupKinds] = {
-    { "FK_FALCON_8", 0, 8, 0 },
-    { "FK_FALCON_16", 0, 16, 0 },
-    { "FK_FALCON_24", 0, 24, 0 },
-    { "FK_FALCON_32", 0, 32, 0 },
+    { "FK_FALCON_U8", 0, 8, 0 },
+    { "FK_FALCON_U8R", 0, 8, 0 },
+    { "FK_FALCON_U16", 0, 16, 0 },
+    { "FK_FALCON_U24", 0, 24, 0 },
+    { "FK_FALCON_U32", 0, 32, 0 },
     { "FK_FALCON_S8", 0, 8, 0 },
+    { "FK_FALCON_S8R", 0, 8, 0 },
     { "FK_FALCON_S16", 0, 16, 0 },
     { "FK_FALCON_LO16", 0, 16, 0 },
     { "FK_FALCON_HI16", 0, 16, 0 },
     { "FK_FALCON_HI8", 0, 8, 0 },
-    { "FK_FALCON_8S1", 0, 8, 0 },
-    { "FK_FALCON_8S2", 0, 8, 0 },
+    { "FK_FALCON_U8S1", 0, 8, 0 },
+    { "FK_FALCON_U8S2", 0, 8, 0 },
+    { "FK_FALCON_PC8", 0, 8, MCFixupKindInfo::FKF_IsPCRel },
+    { "FK_FALCON_PC8R", 0, 8, MCFixupKindInfo::FKF_IsPCRel },
+    { "FK_FALCON_PC16", 0, 16, MCFixupKindInfo::FKF_IsPCRel },
   };
 
   if (Kind < FirstTargetFixupKind)
@@ -162,6 +167,49 @@ void FalconMCAsmBackend::processFixupValue(
   // if the value is invalid.
   if (IsResolved)
     (void)adjustFixupValue(Fixup, Value, &Asm.getContext());
+}
+
+bool FalconMCAsmBackend::mayNeedRelaxation(const MCInst &Inst) const {
+  int RelaxedOpcode = Falcon::getRelaxedOpcode(Inst.getOpcode());
+  if (RelaxedOpcode == -1)
+    return false;
+
+  unsigned RelaxableOp = Inst.getNumOperands() - 1;
+  // XXX should return false here if the operand is not PCRel
+  if (!Inst.getOperand(RelaxableOp).isExpr())
+    return true;
+
+  if (auto FE = dyn_cast<FalconMCExpr>(Inst.getOperand(RelaxableOp).getExpr())) {
+    // Do not relax instructions if the mode is forced.
+    if (FE->getKind() != FalconMCExpr::VK_Falcon_None)
+      return false;
+  }
+
+  return true;
+}
+
+bool FalconMCAsmBackend::fixupNeedsRelaxation(const MCFixup &Fixup,
+                                              uint64_t Value,
+                                              const MCRelaxableFragment *Fragment,
+                                              const MCAsmLayout &Layout) const {
+  switch (unsigned(Fixup.getKind())) {
+  case Falcon::FK_FALCON_S8R:
+  case Falcon::FK_FALCON_PC8R:
+    return int8_t(Value) != int64_t(Value);
+  case Falcon::FK_FALCON_U8R:
+    return uint8_t(Value) != Value;
+  default:
+    // Other fixups are not relaxable.
+    return false;
+  }
+}
+
+void FalconMCAsmBackend::relaxInstruction(const MCInst &Inst, MCInst &Res) const {
+  int RelaxedOpcode = Falcon::getRelaxedOpcode(Inst.getOpcode());
+  if (RelaxedOpcode == -1)
+    llvm_unreachable("relaxing unknown instruction");
+  Res = Inst;
+  Res.setOpcode(RelaxedOpcode);
 }
 
 MCAsmBackend *llvm::createFalconMCAsmBackend(const Target &T,

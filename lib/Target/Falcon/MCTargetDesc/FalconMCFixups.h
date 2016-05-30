@@ -15,17 +15,22 @@
 namespace llvm {
 namespace Falcon {
 enum FixupKind {
-  FK_FALCON_8 = FirstTargetFixupKind,
-  FK_FALCON_16,
-  FK_FALCON_24,
-  FK_FALCON_32,
+  FK_FALCON_U8 = FirstTargetFixupKind,
+  FK_FALCON_U8R,
+  FK_FALCON_U16,
+  FK_FALCON_U24,
+  FK_FALCON_U32,
   FK_FALCON_S8,
+  FK_FALCON_S8R,
   FK_FALCON_S16,
   FK_FALCON_LO16,
   FK_FALCON_HI16,
   FK_FALCON_HI8,
-  FK_FALCON_8S1,
-  FK_FALCON_8S2,
+  FK_FALCON_U8S1,
+  FK_FALCON_U8S2,
+  FK_FALCON_PC8,
+  FK_FALCON_PC8R,
+  FK_FALCON_PC16,
 
   // Marker
   LastTargetFixupKind,

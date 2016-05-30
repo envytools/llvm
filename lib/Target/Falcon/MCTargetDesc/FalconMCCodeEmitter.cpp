@@ -12,8 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "MCTargetDesc/FalconMCTargetDesc.h"
-#include "MCTargetDesc/FalconMCFixups.h"
 #include "MCTargetDesc/FalconMCExpr.h"
+#include "MCTargetDesc/FalconMCFixups.h"
+#include "MCTargetDesc/FalconMCInstrMap.h"
 #include "llvm/MC/MCCodeEmitter.h"
 #include "llvm/MC/MCFixup.h"
 #include "llvm/MC/MCInst.h"
@@ -180,9 +181,9 @@ uint64_t FalconMCCodeEmitter::getMemRegImmEncoding(const MCInst &MI, unsigned Op
     return RegEnc | IdxEnc << 4;
   } else if (IdxOp.isExpr()) {
     static const unsigned FixupKinds[3] = {
-      Falcon::FK_FALCON_8,
-      Falcon::FK_FALCON_8S1,
-      Falcon::FK_FALCON_8S2,
+      Falcon::FK_FALCON_U8,
+      Falcon::FK_FALCON_U8S1,
+      Falcon::FK_FALCON_U8S2,
     };
     const MCExpr *Expr = IdxOp.getExpr();
     Fixups.push_back(MCFixup::create(2, Expr, MCFixupKind(FixupKinds[shift])));
@@ -202,9 +203,9 @@ uint64_t FalconMCCodeEmitter::getMemImmEncoding(const MCInst &MI, unsigned OpNum
     return IdxEnc;
   } else if (IdxOp.isExpr()) {
     static const unsigned FixupKinds[3] = {
-      Falcon::FK_FALCON_8,
-      Falcon::FK_FALCON_8S1,
-      Falcon::FK_FALCON_8S2,
+      Falcon::FK_FALCON_U8,
+      Falcon::FK_FALCON_U8S1,
+      Falcon::FK_FALCON_U8S2,
     };
     const MCExpr *Expr = IdxOp.getExpr();
     Fixups.push_back(MCFixup::create(2, Expr, MCFixupKind(FixupKinds[shift])));
@@ -220,10 +221,19 @@ uint64_t FalconMCCodeEmitter::getPC8Encoding(const MCInst &MI, unsigned OpNum,
   const MCOperand &MO = MI.getOperand(OpNum);
   const MCExpr *Expr;
   uint64_t Offset = 2;
+  unsigned Fixup = Falcon::FK_FALCON_PC8R;
+  if (Falcon::getRelaxedOpcode(MI.getOpcode()) == -1)
+    Fixup = Falcon::FK_FALCON_PC8;
   if (MO.isImm())
     Expr = MCConstantExpr::create(MO.getImm() + Offset, Ctx);
   else {
     Expr = MO.getExpr();
+    if (auto FE = dyn_cast<FalconMCExpr>(Expr)) {
+      if (FE->getKind() != FalconMCExpr::VK_Falcon_PC8)
+        llvm_unreachable("Unexpected FalconMCExpr kind.");
+      Expr = FE->getSubExpr();
+      Fixup = Falcon::FK_FALCON_PC8;
+    }
     if (Offset) {
       // The operand value is relative to the start of MI, but the fixup
       // is relative to the operand field itself, which is Offset bytes
@@ -233,7 +243,7 @@ uint64_t FalconMCCodeEmitter::getPC8Encoding(const MCInst &MI, unsigned OpNum,
       Expr = MCBinaryExpr::createAdd(Expr, OffsetExpr, Ctx);
     }
   }
-  Fixups.push_back(MCFixup::create(Offset, Expr, FK_PCRel_1));
+  Fixups.push_back(MCFixup::create(Offset, Expr, MCFixupKind(Fixup)));
   return 0;
 }
 
@@ -243,10 +253,16 @@ uint64_t FalconMCCodeEmitter::getPC16Encoding(const MCInst &MI, unsigned OpNum,
   const MCOperand &MO = MI.getOperand(OpNum);
   const MCExpr *Expr;
   uint64_t Offset = 2;
+  unsigned Fixup = Falcon::FK_FALCON_PC16;
   if (MO.isImm())
     Expr = MCConstantExpr::create(MO.getImm() + Offset, Ctx);
   else {
     Expr = MO.getExpr();
+    if (auto FE = dyn_cast<FalconMCExpr>(Expr)) {
+      if (FE->getKind() != FalconMCExpr::VK_Falcon_PC16)
+        llvm_unreachable("Unexpected FalconMCExpr kind.");
+      Expr = FE->getSubExpr();
+    }
     if (Offset) {
       // The operand value is relative to the start of MI, but the fixup
       // is relative to the operand field itself, which is Offset bytes
@@ -256,7 +272,7 @@ uint64_t FalconMCCodeEmitter::getPC16Encoding(const MCInst &MI, unsigned OpNum,
       Expr = MCBinaryExpr::createAdd(Expr, OffsetExpr, Ctx);
     }
   }
-  Fixups.push_back(MCFixup::create(Offset, Expr, FK_PCRel_2));
+  Fixups.push_back(MCFixup::create(Offset, Expr, MCFixupKind(Fixup)));
   return 0;
 }
 
@@ -269,11 +285,14 @@ uint64_t FalconMCCodeEmitter::encodeS8ImmOperand(const MCInst &MI, unsigned OpNu
   else {
     uint64_t Offset = 2;
     const MCExpr *Expr = MO.getExpr();
-    unsigned Fixup = Falcon::FK_FALCON_S8;
+    unsigned Fixup = Falcon::FK_FALCON_S8R;
+    if (Falcon::getRelaxedOpcode(MI.getOpcode()) == -1)
+      Fixup = Falcon::FK_FALCON_S8;
     if (auto FE = dyn_cast<FalconMCExpr>(Expr)) {
       if (FE->getKind() != FalconMCExpr::VK_Falcon_S8)
         llvm_unreachable("Unexpected FalconMCExpr kind.");
       Expr = FE->getSubExpr();
+      Fixup = Falcon::FK_FALCON_S8;
     }
     Fixups.push_back(MCFixup::create(Offset, Expr, MCFixupKind(Fixup)));
     return 0;
@@ -328,10 +347,13 @@ uint64_t FalconMCCodeEmitter::encodeU8ImmOperand(const MCInst &MI, unsigned OpNu
   else {
     uint64_t Offset = 2;
     const MCExpr *Expr = MO.getExpr();
-    unsigned Fixup = Falcon::FK_FALCON_8;
+    unsigned Fixup = Falcon::FK_FALCON_U8R;
+    if (Falcon::getRelaxedOpcode(MI.getOpcode()) == -1)
+      Fixup = Falcon::FK_FALCON_U8;
     if (auto FE = dyn_cast<FalconMCExpr>(Expr)) {
       switch (FE->getKind()) {
       case FalconMCExpr::VK_Falcon_U8:
+        Fixup = Falcon::FK_FALCON_U8;
         break;
       case FalconMCExpr::VK_Falcon_HI8:
         Fixup = Falcon::FK_FALCON_HI8;
@@ -361,7 +383,7 @@ uint64_t FalconMCCodeEmitter::encodeU16ImmOperand(const MCInst &MI, unsigned OpN
   else {
     uint64_t Offset = 2;
     const MCExpr *Expr = MO.getExpr();
-    unsigned Fixup = Falcon::FK_FALCON_16;
+    unsigned Fixup = Falcon::FK_FALCON_U16;
     if (auto FE = dyn_cast<FalconMCExpr>(Expr)) {
       switch (FE->getKind()) {
       case FalconMCExpr::VK_Falcon_U16:
