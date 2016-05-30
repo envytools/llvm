@@ -42,9 +42,9 @@ class GPR32<bits<16> Enc, string n, GPR16 lo> : FalconRegWithSubregs<n, [lo]> {
 }
 
 foreach I = 0-15 in {
-  def R#I#B : GPR8<I, "r"#I#"b">;
-  def R#I#H : GPR16<I, "r"#I#"h", !cast<GPR8>("R"#I#"B")>;
-  def R#I : GPR32<I, "r"#I, !cast<GPR16>("R"#I#"H")>;
+  def R#I#B : GPR8<I, "r"#I#"b">, DwarfRegNum<[I]>;
+  def R#I#H : GPR16<I, "r"#I#"h", !cast<GPR8>("R"#I#"B")>, DwarfRegNum<[I]>;
+  def R#I : GPR32<I, "r"#I, !cast<GPR16>("R"#I#"H")>, DwarfRegNum<[I]>;
 }
 
 def GPR8 : RegisterClass<"Falcon", [i8], 8, (add (sequence "R%uB", 0, 15))>;

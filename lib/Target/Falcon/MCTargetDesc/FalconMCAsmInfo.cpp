@@ -14,8 +14,6 @@
 using namespace llvm;
 
 FalconMCAsmInfo::FalconMCAsmInfo(const Triple &TT) {
-	// XXX
-//  SupportsDebugInformation = true;
-
+  SupportsDebugInformation = true;
   UseIntegratedAssembler = true;
 }
