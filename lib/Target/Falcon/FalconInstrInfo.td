@@ -156,11 +156,10 @@ multiclass InstSized<
   bits<2> mode,
   ValueType vt,
   RegisterClass GPR,
-  Immediate uimm8x,
-  Immediate uimm16,
-  Immediate simm8x,
-  Immediate simm16,
   Immediate uimm8,
+  Immediate uimm16,
+  Immediate simm8,
+  Immediate simm16,
   Operand memri,
   ComplexPattern memrinz,
   ComplexPattern memrrx,
@@ -170,15 +169,15 @@ multiclass InstSized<
   // Instructions - compares
 
   let Defs = [CC_C, CC_Z] in {
-    def CMPU # NAME # ri8 : InstSCRI8<mode, 0x4, GPR, uimm8x, "cmpu",
-      [(cmpu_cz GPR:$R1, uimm8x:$I8)]>;
+    def CMPU # NAME # ri8 : InstSCRI8<mode, 0x4, GPR, uimm8, "cmpu",
+      [(cmpu_cz GPR:$R1, uimm8:$I8)]>;
     def CMPU # NAME # ri16 : InstSCRI16<mode, 0x4, GPR, uimm16, "cmpu",
       [(cmpu_cz GPR:$R1, uimm16:$I16)]>;
     def CMPU # NAME # rr : InstSCRR<mode, 0x4, GPR, "cmpu",
       [(cmpu_cz GPR:$R1, GPR:$R2)]>;
 
-    def CMPS # NAME # ri8 : InstSCRI8<mode, 0x5, GPR, simm8x, "cmps",
-      [(cmps_cz GPR:$R1, simm8x:$I8)]>;
+    def CMPS # NAME # ri8 : InstSCRI8<mode, 0x5, GPR, simm8, "cmps",
+      [(cmps_cz GPR:$R1, simm8:$I8)]>;
     def CMPS # NAME # ri16 : InstSCRI16<mode, 0x5, GPR, simm16, "cmps",
       [(cmps_cz GPR:$R1, simm16:$I16)]>;
     def CMPS # NAME # rr : InstSCRR<mode, 0x5, GPR, "cmps",
@@ -186,8 +185,8 @@ multiclass InstSized<
   }
 
   let Defs = [CC_C, CC_O, CC_S, CC_Z] in {
-    def CMP # NAME # ri8 : InstSCRI8<mode, 0x6, GPR, simm8x, "cmp",
-      [(cmp_cosz GPR:$R1, simm8x:$I8)]>;
+    def CMP # NAME # ri8 : InstSCRI8<mode, 0x6, GPR, simm8, "cmp",
+      [(cmp_cosz GPR:$R1, simm8:$I8)]>;
     def CMP # NAME # ri16 : InstSCRI16<mode, 0x6, GPR, simm16, "cmp",
       [(cmp_cosz GPR:$R1, simm16:$I16)]>;
     def CMP # NAME # rr : InstSCRR<mode, 0x6, GPR, "cmp",
@@ -196,10 +195,10 @@ multiclass InstSized<
 
   // Instructions - sized binary
 
-  defm ADD # NAME : InstSB_COSZ<"add", add_cosz, mode, 0x0, GPR, uimm8x, uimm16, 1>;
-  defm ADC # NAME : InstSB_COSZ_Carry<"adc", adc_cosz, mode, 0x1, GPR, uimm8x, uimm16, 1>;
-  defm SUB # NAME : InstSB_COSZ<"sub", sub_cosz, mode, 0x2, GPR, uimm8x, uimm16>;
-  defm SBB # NAME : InstSB_COSZ_Carry<"sbb", sbb_cosz, mode, 0x3, GPR, uimm8x, uimm16>;
+  defm ADD # NAME : InstSB_COSZ<"add", add_cosz, mode, 0x0, GPR, uimm8, uimm16, 1>;
+  defm ADC # NAME : InstSB_COSZ_Carry<"adc", adc_cosz, mode, 0x1, GPR, uimm8, uimm16, 1>;
+  defm SUB # NAME : InstSB_COSZ<"sub", sub_cosz, mode, 0x2, GPR, uimm8, uimm16>;
+  defm SBB # NAME : InstSB_COSZ_Carry<"sbb", sbb_cosz, mode, 0x3, GPR, uimm8, uimm16>;
   defm SHL # NAME : InstSB_COSZ_8<"shl", shl_cosz, mode, 0x4, GPR, uimm8>;
   defm SHR # NAME : InstSB_COSZ_8<"shr", shr_cosz, mode, 0x5, GPR, uimm8>;
   defm SAR # NAME : InstSB_COSZ_8<"sar", sar_cosz, mode, 0x7, GPR, uimm8>;
@@ -207,17 +206,17 @@ multiclass InstSized<
   defm SHRC # NAME : InstSB_COSZ_Carry_8<"shrc", shrc_cosz, mode, 0xd, GPR, uimm8>;
 
   def : Pat<(add GPR:$s1, GPR:$s2), (!cast<PatFrag>("ADD" # NAME # "rr") GPR:$s1, GPR:$s2)>;
-  def : Pat<(add GPR:$s1, uimm8x:$s2), (!cast<PatFrag>("ADD" # NAME # "ri8") GPR:$s1, uimm8x:$s2)>;
+  def : Pat<(add GPR:$s1, uimm8:$s2), (!cast<PatFrag>("ADD" # NAME # "ri8") GPR:$s1, uimm8:$s2)>;
   def : Pat<(add GPR:$s1, uimm16:$s2), (!cast<PatFrag>("ADD" # NAME # "ri16") GPR:$s1, uimm16:$s2)>;
   def : Pat<(addc GPR:$s1, GPR:$s2), (!cast<PatFrag>("ADD" # NAME # "rr") GPR:$s1, GPR:$s2)>;
-  def : Pat<(addc GPR:$s1, uimm8x:$s2), (!cast<PatFrag>("ADD" # NAME # "ri8") GPR:$s1, uimm8x:$s2)>;
+  def : Pat<(addc GPR:$s1, uimm8:$s2), (!cast<PatFrag>("ADD" # NAME # "ri8") GPR:$s1, uimm8:$s2)>;
   def : Pat<(addc GPR:$s1, uimm16:$s2), (!cast<PatFrag>("ADD" # NAME # "ri16") GPR:$s1, uimm16:$s2)>;
   def : Pat<(adde GPR:$s1, GPR:$s2), (!cast<PatFrag>("ADC" # NAME # "rr") GPR:$s1, GPR:$s2)>;
-  def : Pat<(adde GPR:$s1, uimm8x:$s2), (!cast<PatFrag>("ADC" # NAME # "ri8") GPR:$s1, uimm8x:$s2)>;
+  def : Pat<(adde GPR:$s1, uimm8:$s2), (!cast<PatFrag>("ADC" # NAME # "ri8") GPR:$s1, uimm8:$s2)>;
   def : Pat<(adde GPR:$s1, uimm16:$s2), (!cast<PatFrag>("ADC" # NAME # "ri16") GPR:$s1, uimm16:$s2)>;
   def : Pat<(sub GPR:$s1, GPR:$s2), (!cast<PatFrag>("SUB" # NAME # "rr") GPR:$s1, GPR:$s2)>;
   // XXX these patterns are wrong
-  def : Pat<(sub GPR:$s1, uimm8x:$s2), (!cast<PatFrag>("SUB" # NAME # "ri8") GPR:$s1, uimm8x:$s2)>;
+  def : Pat<(sub GPR:$s1, uimm8:$s2), (!cast<PatFrag>("SUB" # NAME # "ri8") GPR:$s1, uimm8:$s2)>;
   def : Pat<(sub GPR:$s1, uimm16:$s2), (!cast<PatFrag>("SUB" # NAME # "ri16") GPR:$s1, uimm16:$s2)>;
   def : Pat<(shl GPR:$s1, GPR:$s2), (!cast<PatFrag>("SHL" # NAME # "rr") GPR:$s1, GPR:$s2)>;
   def : Pat<(shl GPR:$s1, uimm8:$s2), (!cast<PatFrag>("SHL" # NAME # "ri8") GPR:$s1, uimm8:$s2)>;
@@ -258,9 +257,9 @@ multiclass InstSized<
   def ST # NAME # rmspi8 : InstSSRMSPI8<mode, 0x1, GPR, memspi, "st", []>;
 }
 
-defm b : InstSized<0, i8, GPR8, imm8, imm8x16, simm8, simm8x16, imm8, memri0, memrinz0, memrr0, memspi0>;
-defm h : InstSized<1, i16, GPR16, imm16zx8x, imm16, imm16sx8x, simm16, imm16zx8, memri1, memrinz1, memrr1, memspi1>;
-defm w : InstSized<2, i32, GPR32, imm32zx8x, imm32zx16, imm32sx8x, imm32sx16, imm32zx8, memri2, memrinz2, memrr2, memspi2>;
+defm b : InstSized<0, i8, GPR8, imm8, imm8x16, simm8, simm8x16, memri0, memrinz0, memrr0, memspi0>;
+defm h : InstSized<1, i16, GPR16, imm16zx8, imm16, imm16sx8, simm16, memri1, memrinz1, memrr1, memspi1>;
+defm w : InstSized<2, i32, GPR32, imm32zx8, imm32zx16, imm32sx8, imm32sx16, memri2, memrinz2, memrr2, memspi2>;
 
 // Instructions - Unsized binary
 
@@ -303,22 +302,22 @@ multiclass InstUB<
     FalconThreeInst<name # "ri16", "2">;
 }
 
-defm MULU : InstUB<"mulu", mulu, 0x0, imm32zx8x, imm32zx16, 1>;
-defm MULS : InstUB<"muls", muls, 0x1, imm32sx8x, imm32sx16, 1>;
+defm MULU : InstUB<"mulu", mulu, 0x0, imm32zx8, imm32zx16, 1>;
+defm MULS : InstUB<"muls", muls, 0x1, imm32sx8, imm32sx16, 1>;
 let Defs = [CC_C, CC_O, CC_S, CC_Z] in {
-  defm AND : InstUB<"and", and_cosz, 0x4, imm32zx8x, imm32zx16, 1>;
-  defm OR : InstUB<"or", or_cosz, 0x5, imm32zx8x, imm32zx16, 1>;
-  defm XOR : InstUB<"xor", xor_cosz, 0x6, imm32zx8x, imm32zx16, 1>;
+  defm AND : InstUB<"and", and_cosz, 0x4, imm32zx8, imm32zx16, 1>;
+  defm OR : InstUB<"or", or_cosz, 0x5, imm32zx8, imm32zx16, 1>;
+  defm XOR : InstUB<"xor", xor_cosz, 0x6, imm32zx8, imm32zx16, 1>;
 }
 
 def : Pat<(and GPR32:$s1, GPR32:$s2), (ANDrr GPR32:$s1, GPR32:$s2)>;
-def : Pat<(and GPR32:$s1, imm32zx8x:$s2), (ANDri8 GPR32:$s1, imm32zx8x:$s2)>;
+def : Pat<(and GPR32:$s1, imm32zx8:$s2), (ANDri8 GPR32:$s1, imm32zx8:$s2)>;
 def : Pat<(and GPR32:$s1, imm32zx16:$s2), (ANDri16 GPR32:$s1, imm32zx16:$s2)>;
 def : Pat<(or GPR32:$s1, GPR32:$s2), (ORrr GPR32:$s1, GPR32:$s2)>;
-def : Pat<(or GPR32:$s1, imm32zx8x:$s2), (ORri8 GPR32:$s1, imm32zx8x:$s2)>;
+def : Pat<(or GPR32:$s1, imm32zx8:$s2), (ORri8 GPR32:$s1, imm32zx8:$s2)>;
 def : Pat<(or GPR32:$s1, imm32zx16:$s2), (ORri16 GPR32:$s1, imm32zx16:$s2)>;
 def : Pat<(xor GPR32:$s1, GPR32:$s2), (XORrr GPR32:$s1, GPR32:$s2)>;
-def : Pat<(xor GPR32:$s1, imm32zx8x:$s2), (XORri8 GPR32:$s1, imm32zx8x:$s2)>;
+def : Pat<(xor GPR32:$s1, imm32zx8:$s2), (XORri8 GPR32:$s1, imm32zx8:$s2)>;
 def : Pat<(xor GPR32:$s1, imm32zx16:$s2), (XORri16 GPR32:$s1, imm32zx16:$s2)>;
 
 let Defs = [CC_S, CC_Z] in {
@@ -335,15 +334,15 @@ let Defs = [CC_S, CC_Z] in {
       FalconThreeInst<"sextrr", "2">;
   }
 
-  def EXTRSrri8 : InstUBRRI8<0x3, imm32zx8x, "extrs",
-      [(set GPR32:$R2, (extrs_sz GPR32:$R1, imm32zx8x:$I8))]>;
+  def EXTRSrri8 : InstUBRRI8<0x3, imm32zx8, "extrs",
+      [(set GPR32:$R2, (extrs_sz GPR32:$R1, imm32zx8:$I8))]>;
   def EXTRSrri16 : InstUBRRI16<0x3, imm32zx16, "extrs",
       [(set GPR32:$R2, (extrs_sz GPR32:$R1, imm32zx16:$I16))]>;
   def EXTRSrrr : InstUBRRR<0x3, "extrs",
       [(set GPR32:$R3, (extrs_sz GPR32:$R1, GPR32:$R2))]>;
 
-  def EXTRrri8 : InstUBRRI8<0x7, imm32zx8x, "extr",
-      [(set GPR32:$R2, (extr_sz GPR32:$R1, imm32zx8x:$I8))]>;
+  def EXTRrri8 : InstUBRRI8<0x7, imm32zx8, "extr",
+      [(set GPR32:$R2, (extr_sz GPR32:$R1, imm32zx8:$I8))]>;
   def EXTRrri16 : InstUBRRI16<0x7, imm32zx16, "extr",
       [(set GPR32:$R2, (extr_sz GPR32:$R1, imm32zx16:$I16))]>;
   def EXTRrrr : InstUBRRR<0x7, "extr",
@@ -356,7 +355,7 @@ let Defs = [CC_S, CC_Z] in {
 }
 
 def INSrri8 : InstUTRRI8<0xb, "ins",
-      [(set GPR32:$R3, (insrt GPR32:$R1, GPR32:$R2, imm32zx8x:$I8))]>;
+      [(set GPR32:$R3, (insrt GPR32:$R1, GPR32:$R2, imm32zx8:$I8))]>;
 def INSrri16 : InstUTRRI16<0xb, "ins",
       [(set GPR32:$R3, (insrt GPR32:$R1, GPR32:$R2, imm32zx16:$I16))]>;
 
@@ -373,10 +372,10 @@ def TGLBri8 : InstUBRI8<0xb, imm32zx8, "tglb",
 def TGLBrr : InstUBRR<0xb, "tglb",
     [(set GPR32:$R3, (tglb GPR32:$R1, GPR32:$R2))]>;
 
-def DIVrri8 : InstUBRRI8<0xc, imm32zx8x, "div", [(set GPR32:$R2, (udiv GPR32:$R1, imm32zx8x:$I8))]>;
+def DIVrri8 : InstUBRRI8<0xc, imm32zx8, "div", [(set GPR32:$R2, (udiv GPR32:$R1, imm32zx8:$I8))]>;
 def DIVrri16 : InstUBRRI16<0xc, imm32zx16, "div", [(set GPR32:$R2, (udiv GPR32:$R1, imm32zx16:$I16))]>;
 def DIVrrr : InstUBRRR<0xc, "div", [(set GPR32:$R3, (udiv GPR32:$R1, GPR32:$R2))]>;
-def MODrri8 : InstUBRRI8<0xd, imm32zx8x, "mod", [(set GPR32:$R2, (urem GPR32:$R1, imm32zx8x:$I8))]>;
+def MODrri8 : InstUBRRI8<0xd, imm32zx8, "mod", [(set GPR32:$R2, (urem GPR32:$R1, imm32zx8:$I8))]>;
 def MODrri16 : InstUBRRI16<0xd, imm32zx16, "mod", [(set GPR32:$R2, (urem GPR32:$R1, imm32zx16:$I16))]>;
 def MODrrr : InstUBRRR<0xd, "mod", [(set GPR32:$R3, (urem GPR32:$R1, GPR32:$R2))]>;
 
@@ -406,7 +405,7 @@ let Defs = [SP], Uses = [SP] in {
   def POPr : InstUDR<0x0, "pop", []>;
   def PUSHr : InstUSR<0x0, "push", []>;
   def ADDSPr : InstUSR<0x1, "addsp", []>;
-  def ADDSPi8 : InstUSI8<0x30, imm32sx8x, "addsp", []>;
+  def ADDSPi8 : InstUSI8<0x30, imm32sx8, "addsp", []>;
   def ADDSPi16 : InstUSI16<0x30, imm32sx16, "addsp", []>;
 }
 let isBranch = 1, isIndirectBranch = 1, isTerminator = 1, isBarrier = 1, hasCtrlDep = 1 in {
@@ -414,14 +413,14 @@ let isBranch = 1, isIndirectBranch = 1, isTerminator = 1, isBarrier = 1, hasCtrl
 }
 // XXX wrong
 let isReturn = 1, isCall = 1, isTerminator = 1, isBarrier = 1, hasCtrlDep = 1 in {
-  def JMPi8 : InstUSI8<0x20, imm32zx8x, "jmp", []>;
+  def JMPi8 : InstUSI8<0x20, imm32zx8, "jmp", []>;
   // XXX ext to 24
   def JMPi16 : InstUSI16<0x20, imm32zx16, "jmp", []>;
 }
 // XXX wrong
 let isCall = 1 in {
   def CALLr : InstUSR<0x5, "call", [(call GPR32:$R1)]>;
-  def CALLi8 : InstUSI8<0x21, imm32zx8x, "call", [(call imm32zx8x:$I8)]>;
+  def CALLi8 : InstUSI8<0x21, imm32zx8, "call", [(call imm32zx8:$I8)]>;
   // XXX ext to 24
   def CALLi16 : InstUSI16<0x21, imm32zx16, "call", [(call imm32zx16:$I16)]>;
 }
@@ -463,7 +462,7 @@ def R2Srr : InstUUSR<0x0, "mov", []>;
 def S2Rrr : InstUURS<0x1, "mov", []>;
 
 def CCri8 : InstUSRI8<0xc, "cc", []>;
-def CCi8 : InstUSI8<0x3c, imm32zx8x, "cc", []>;
+def CCi8 : InstUSI8<0x3c, imm32zx8, "cc", []>;
 def CCi16 : InstUSI16<0x3c, imm32zx16, "cc", []>;
 
 // XXX: patterns don't exactly work
@@ -488,10 +487,10 @@ def IOWRBrmri8 : InstUSRMRI8<0x1, "iowrb",
 
 // XXX: traps
 
-def MOVri8 : InstUURI8<0x7, "mov", [(set GPR32:$R1, imm32sx8x:$I8)]>;
+def MOVri8 : InstUURI8<0x7, "mov", [(set GPR32:$R1, imm32sx8:$I8)]>;
 def MOVri16 : InstUURI16<0x7, "mov", [(set GPR32:$R1, imm32sx16:$I16)]>;
 let Constraints = "$R2 = $R1" in {
-  def SETHIri8 : InstUBRI8<0x3, imm32zx8x, "sethi", [(set GPR32:$R2, (sethi GPR32:$R1, imm32zx8x:$I8))]>;
+  def SETHIri8 : InstUBRI8<0x3, imm32zx8, "sethi", [(set GPR32:$R2, (sethi GPR32:$R1, imm32zx8:$I8))]>;
   def SETHIri16 : InstUBRI16<0x3, imm32zx16, "sethi", [(set GPR32:$R2, (sethi GPR32:$R1, imm32zx16:$I16))]>;
 }
 
@@ -595,7 +594,7 @@ def : Pat<(i32 imm:$val), (SETHIri16 (MOVri16 (SIMM16 imm:$val)), (HI16 imm:$val
 // short consts
 
 def : Pat<(i8 imm8:$val), (EXTRACT_SUBREG (i16 (EXTRACT_SUBREG (MOVri8 (SIMM8 imm:$val)), subreg_w)), subreg_b)>;
-def : Pat<(i16 imm16sx8x:$val), (EXTRACT_SUBREG (MOVri8 (SIMM8 imm:$val)), subreg_w)>;
+def : Pat<(i16 imm16sx8:$val), (EXTRACT_SUBREG (MOVri8 (SIMM8 imm:$val)), subreg_w)>;
 def : Pat<(i16 imm16:$val), (EXTRACT_SUBREG (MOVri16 (SIMM16 imm:$val)), subreg_w)>;
 
 def : Pat<(lo16 tglobaladdr:$sym), (MOVri16 tglobaladdr:$sym)>;

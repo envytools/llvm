@@ -146,17 +146,7 @@ static DecodeStatus decodeU8ImmOperand(MCInst &Inst, uint64_t Imm,
   return decodeUImmOperand<8>(Inst, Imm);
 }
 
-static DecodeStatus decodeU8XImmOperand(MCInst &Inst, uint64_t Imm,
-                                       uint64_t Address, const void *Decoder) {
-  return decodeUImmOperand<8>(Inst, Imm);
-}
-
 static DecodeStatus decodeU16ImmOperand(MCInst &Inst, uint64_t Imm,
-                                        uint64_t Address, const void *Decoder) {
-  return decodeUImmOperand<16>(Inst, Imm);
-}
-
-static DecodeStatus decodeU16XImmOperand(MCInst &Inst, uint64_t Imm,
                                         uint64_t Address, const void *Decoder) {
   return decodeUImmOperand<16>(Inst, Imm);
 }
@@ -166,18 +156,8 @@ static DecodeStatus decodeS8ImmOperand(MCInst &Inst, uint64_t Imm,
   return decodeSImmOperand<8>(Inst, Imm);
 }
 
-static DecodeStatus decodeS8XImmOperand(MCInst &Inst, uint64_t Imm,
-                                       uint64_t Address, const void *Decoder) {
-  return decodeSImmOperand<8>(Inst, Imm);
-}
-
 static DecodeStatus decodeS16ImmOperand(MCInst &Inst, uint64_t Imm,
                                         uint64_t Address, const void *Decoder) {
-  return decodeSImmOperand<16>(Inst, Imm);
-}
-
-static DecodeStatus decodeS16XImmOperand(MCInst &Inst, uint64_t Imm,
-                                       uint64_t Address, const void *Decoder) {
   return decodeSImmOperand<16>(Inst, Imm);
 }
 

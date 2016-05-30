@@ -44,8 +44,8 @@ def getRelaxedOpcode : InstrMapping {
   let FilterClass = "FalconRelaxInst";
   let RowFields = ["RelaxKey"];
   let ColFields = ["RelaxValue"];
-  let KeyCol = ["PC8"];
-  let ValueCols = [["PC16"]];
+  let KeyCol = ["8"];
+  let ValueCols = [["16"]];
 }
 
 class Pseudo<int size, dag outs, dag ins, string asmstr, list<dag> pattern>
@@ -358,11 +358,13 @@ class InstSSRMSPR<bits<2> mode, bits<4> op, RegisterClass GPR, string asmname, l
 
 // Sized, Compare, Reg, Imm8
 class InstSCRI8<bits<2> mode, bits<4> op, RegisterClass GPR, Immediate mimm8, string asmname, list<dag> pattern>
-  : InstORI8<mode, 0x30, op, (outs), (ins GPR:$R1, mimm8:$I8), asmname # "\t$R1, $I8", pattern>;
+  : InstORI8<mode, 0x30, op, (outs), (ins GPR:$R1, mimm8:$I8), asmname # "\t$R1, $I8", pattern>,
+    FalconRelaxInst<asmname # "ri" # mode, "8">;
 
 // Sized, Compare, Reg, Imm16
 class InstSCRI16<bits<2> mode, bits<4> op, RegisterClass GPR, Immediate mimm16, string asmname, list<dag> pattern>
-  : InstORI16<mode, 0x31, op, (outs), (ins GPR:$R1, mimm16:$I16), asmname # "\t$R1, $I16", pattern>;
+  : InstORI16<mode, 0x31, op, (outs), (ins GPR:$R1, mimm16:$I16), asmname # "\t$R1, $I16", pattern>,
+    FalconRelaxInst<asmname # "ri" # mode, "16">;
 
 // Sized, Compare, Reg, Reg
 class InstSCRR<bits<2> mode, bits<4> op, RegisterClass GPR, string asmname, list<dag> pattern>
@@ -372,21 +374,25 @@ class InstSCRR<bits<2> mode, bits<4> op, RegisterClass GPR, string asmname, list
 
 // Sized, Binary, Reg, Reg, Imm8
 class InstSBRRI8<bits<2> mode, bits<4> op, RegisterClass GPR, Immediate mimm8, string asmname, list<dag> pattern>
-  : InstORRI8<mode, 1, op, (outs GPR:$R2), (ins GPR:$R1, mimm8:$I8), asmname # "\t$R2, $R1, $I8", pattern>;
+  : InstORRI8<mode, 1, op, (outs GPR:$R2), (ins GPR:$R1, mimm8:$I8), asmname # "\t$R2, $R1, $I8", pattern>,
+    FalconRelaxInst<asmname # "rri" # mode, "8">;
 
 // Sized, Binary, Reg, Reg, Imm16
 class InstSBRRI16<bits<2> mode, bits<4> op, RegisterClass GPR, Immediate mimm16, string asmname, list<dag> pattern>
-  : InstORRI16<mode, 2, op, (outs GPR:$R2), (ins GPR:$R1, mimm16:$I16), asmname # "\t$R2, $R1, $I16", pattern>;
+  : InstORRI16<mode, 2, op, (outs GPR:$R2), (ins GPR:$R1, mimm16:$I16), asmname # "\t$R2, $R1, $I16", pattern>,
+    FalconRelaxInst<asmname # "rri" # mode, "16">;
 
 // Sized, Binary, Reg, Imm8
 class InstSBRI8<bits<2> mode, bits<4> op, RegisterClass GPR, Immediate mimm8, string asmname, list<dag> pattern>
-  : InstORI8<mode, 0x36, op, (outs GPR:$R2), (ins GPR:$R1, mimm8:$I8), asmname # "\t$R1, $I8", pattern> {
+  : InstORI8<mode, 0x36, op, (outs GPR:$R2), (ins GPR:$R1, mimm8:$I8), asmname # "\t$R1, $I8", pattern>,
+    FalconRelaxInst<asmname # "ri" # mode, "8"> {
   let Constraints = "$R2 = $R1";
 }
 
 // Sized, Binary, Reg, Imm16
 class InstSBRI16<bits<2> mode, bits<4> op, RegisterClass GPR, Immediate mimm16, string asmname, list<dag> pattern>
-  : InstORI16<mode, 0x37, op, (outs GPR:$R2), (ins GPR:$R1, mimm16:$I16), asmname # "\t$R1, $I16", pattern> {
+  : InstORI16<mode, 0x37, op, (outs GPR:$R2), (ins GPR:$R1, mimm16:$I16), asmname # "\t$R1, $I16", pattern>,
+    FalconRelaxInst<asmname # "ri" # mode, "16"> {
   let Constraints = "$R2 = $R1";
 }
 
@@ -440,21 +446,25 @@ class InstSTR<bits<2> mode, bits<4> op, RegisterClass GPR, string asmname, list<
 
 // Unsized, Binary, Reg, Reg, Imm8
 class InstUBRRI8<bits<4> op, Immediate mimm8, string asmname, list<dag> pattern>
-  : InstORRI8<3, 0, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm8:$I8), asmname # "\t$R2, $R1, $I8", pattern>;
+  : InstORRI8<3, 0, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm8:$I8), asmname # "\t$R2, $R1, $I8", pattern>,
+    FalconRelaxInst<asmname # "rri", "8">;
 
 // Unsized, Binary, Reg, Reg, Imm16
 class InstUBRRI16<bits<4> op, Immediate mimm16, string asmname, list<dag> pattern>
-  : InstORRI16<3, 2, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm16:$I16), asmname # "\t$R2, $R1, $I16", pattern>;
+  : InstORRI16<3, 2, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm16:$I16), asmname # "\t$R2, $R1, $I16", pattern>,
+    FalconRelaxInst<asmname # "rri", "16">;
 
 // Unsized, Binary, Reg, Imm8
 class InstUBRI8<bits<4> op, Immediate mimm8, string asmname, list<dag> pattern>
-  : InstORI8<3, 0x30, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm8:$I8), asmname # "\t$R1, $I8", pattern> {
+  : InstORI8<3, 0x30, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm8:$I8), asmname # "\t$R1, $I8", pattern>,
+    FalconRelaxInst<asmname # "ri", "8"> {
   let Constraints = "$R2 = $R1";
 }
 
 // Unsized, Binary, Reg, Imm16
 class InstUBRI16<bits<4> op, Immediate mimm16, string asmname, list<dag> pattern>
-  : InstORI16<3, 0x31, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm16:$I16), asmname # "\t$R1, $I16", pattern> {
+  : InstORI16<3, 0x31, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm16:$I16), asmname # "\t$R1, $I16", pattern>,
+    FalconRelaxInst<asmname # "ri", "16"> {
   let Constraints = "$R2 = $R1";
 }
 
@@ -478,13 +488,15 @@ class InstULRMRR<bits<4> op, string asmname, list<dag> pattern>
 
 // Unsized, Ternary, Reg, Reg, Imm8
 class InstUTRRI8<bits<4> op, string asmname, list<dag> pattern>
-  : InstORRI8<3, 0, op, (outs GPR32:$R3), (ins GPR32:$R1, GPR32:$R2, imm32zx8x:$I8), asmname # "\t$R2, $R1, $I8", pattern> {
+  : InstORRI8<3, 0, op, (outs GPR32:$R3), (ins GPR32:$R1, GPR32:$R2, imm32zx8:$I8), asmname # "\t$R2, $R1, $I8", pattern>,
+    FalconRelaxInst<asmname # "rri", "8"> {
   let Constraints = "$R3 = $R1";
 }
 
 // Unsized, Ternary, Reg, Reg, Imm16
 class InstUTRRI16<bits<4> op, string asmname, list<dag> pattern>
-  : InstORRI16<3, 2, op, (outs GPR32:$R3), (ins GPR32:$R1, GPR32:$R2, imm32zx16:$I16), asmname # "\t$R2, $R1, $I16", pattern> {
+  : InstORRI16<3, 2, op, (outs GPR32:$R3), (ins GPR32:$R1, GPR32:$R2, imm32zx16:$I16), asmname # "\t$R2, $R1, $I16", pattern>,
+    FalconRelaxInst<asmname # "rri", "16"> {
   let Constraints = "$R3 = $R1";
 }
 
@@ -492,11 +504,13 @@ class InstUTRRI16<bits<4> op, string asmname, list<dag> pattern>
 
 // Unsized, Unary, Reg, Imm8
 class InstUURI8<bits<4> op, string asmname, list<dag> pattern>
-  : InstORI8<3, 0x30, op, (outs GPR32:$R1), (ins imm32sx8x:$I8), asmname # "\t$R1, $I8", pattern>;
+  : InstORI8<3, 0x30, op, (outs GPR32:$R1), (ins imm32sx8:$I8), asmname # "\t$R1, $I8", pattern>,
+    FalconRelaxInst<asmname # "ri", "8">;
 
 // Unsized, Unary, Reg, Imm16
 class InstUURI16<bits<4> op, string asmname, list<dag> pattern>
-  : InstORI16<3, 0x31, op, (outs GPR32:$R1), (ins imm32sx16:$I16), asmname # "\t$R1, $I16", pattern>;
+  : InstORI16<3, 0x31, op, (outs GPR32:$R1), (ins imm32sx16:$I16), asmname # "\t$R1, $I16", pattern>,
+    FalconRelaxInst<asmname # "ri", "16">;
 
 // Unsized, Unary, Reg, Reg
 class InstUURR<bits<4> op, string asmname, list<dag> pattern>
@@ -545,30 +559,32 @@ class InstUSRMR<bits<4> op, string asmname, list<dag> pattern>
 // Unsized, Jump Relative, Imm8
 class InstUJRI8<bits<8> op, string asmname, list<dag> pattern>
   : InstOI8<0xf4, op, (outs), (ins pcrel8:$I8), asmname # "\t$I8", pattern>,
-    FalconRelaxInst<asmname, "PC8">;
+    FalconRelaxInst<asmname, "8">;
 
 // Unsized, Jump Relative, Imm16
 class InstUJRI16<bits<8> op, string asmname, list<dag> pattern>
   : InstOI16<0xf5, op, (outs), (ins pcrel16:$I16), asmname # "\t$I16", pattern>,
-    FalconRelaxInst<asmname, "PC16">;
+    FalconRelaxInst<asmname, "16">;
 
 // Unsized, Jump Relative, Imm8
 class InstUJRFI8<bits<4> op, string asmname, list<dag> pattern>
   : InstOFI8<0xf4, op, (outs), (ins PRED:$F, pcrel8:$I8), asmname # "\t$F, $I8", pattern>,
-    FalconRelaxInst<asmname, "PC8">;
+    FalconRelaxInst<asmname, "8">;
 
 // Unsized, Jump Relative, Imm16
 class InstUJRFI16<bits<4> op, string asmname, list<dag> pattern>
   : InstOFI16<0xf5, op, (outs), (ins PRED:$F, pcrel16:$I16), asmname # "\t$F, $I16", pattern>,
-    FalconRelaxInst<asmname, "PC16">;
+    FalconRelaxInst<asmname, "16">;
 
 // Unsized, Sink, Imm8
 class InstUSI8<bits<8> op, Immediate mimm8, string asmname, list<dag> pattern>
-  : InstOI8<0xf4, op, (outs), (ins mimm8:$I8), asmname # "\t$I8", pattern>;
+  : InstOI8<0xf4, op, (outs), (ins mimm8:$I8), asmname # "\t$I8", pattern>,
+    FalconRelaxInst<asmname # "i", "8">;
 
 // Unsized, Sink, Imm16
 class InstUSI16<bits<8> op, Immediate mimm16, string asmname, list<dag> pattern>
-  : InstOI16<0xf5, op, (outs), (ins mimm16:$I16), asmname # "\t$I16", pattern>;
+  : InstOI16<0xf5, op, (outs), (ins mimm16:$I16), asmname # "\t$I16", pattern>,
+    FalconRelaxInst<asmname # "i", "16">;
 
 // Unsized, Misc
 class InstUM<bits<8> op, string asmname, list<dag> pattern>

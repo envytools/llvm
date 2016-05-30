@@ -35,13 +35,9 @@ public:
 private:
   void printPCRelOperand(const MCInst *MI, int OpNum, raw_ostream &O);
   void printS8ImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
-  void printS8XImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
   void printU8ImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
-  void printU8XImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
   void printS16ImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
-  void printS16XImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
   void printU16ImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
-  void printU16XImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
   void printU32ImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
   void printMemReg(const MCInst *MI, int OpNum, raw_ostream &O);
   void printMemRegReg(const MCInst *MI, int OpNum, raw_ostream &O);

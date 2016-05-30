@@ -59,14 +59,10 @@ def UIMM32 : SDNodeXForm<imm, [{
 }]>;
 
 def S16Imm : ImmediateAsmOperand<"S16Imm">;
-def S16XImm : ImmediateAsmOperand<"S16XImm">;
-def S8XImm : ImmediateAsmOperand<"S8XImm", [S16Imm]>;
-def S8Imm : ImmediateAsmOperand<"S8Imm", [S16XImm]>;
+def S8Imm : ImmediateAsmOperand<"S8Imm", [S16Imm]>;
 def U32Imm : ImmediateAsmOperand<"U32Imm">;
 def U16Imm : ImmediateAsmOperand<"U16Imm">;
-def U16XImm : ImmediateAsmOperand<"U16XImm">;
-def U8XImm : ImmediateAsmOperand<"U8XImm", [U16Imm]>;
-def U8Imm : ImmediateAsmOperand<"U8Imm", [U16XImm]>;
+def U8Imm : ImmediateAsmOperand<"U8Imm", [U16Imm]>;
 
 def imm24 : PatLeaf<(i32 imm), [{
   return isUInt<24>(N->getZExtValue());
@@ -91,12 +87,9 @@ def imm32zx8s1 : Immediate<i32, [{
 def imm32zx8s2 : Immediate<i32, [{
    return isShiftedUInt<8, 2>(N->getZExtValue());
 }], UIMM8S2, "U8Imm">;
-def imm32zx8x : Immediate<i32, [{
-   return isUInt<8>(N->getZExtValue());
-}], UIMM8, "U8XImm">;
-def imm32sx8x : Immediate<i32, [{
+def imm32sx8 : Immediate<i32, [{
    return isInt<8>(N->getSExtValue());
-}], SIMM8, "S8XImm">;
+}], SIMM8, "S8Imm">;
 def imm32zx16 : Immediate<i32, [{
    return isUInt<16>(N->getZExtValue());
 }], UIMM16, "U16Imm">;
@@ -112,12 +105,9 @@ def immhi16zx8 : Immediate<i32, [{
 def imm16zx8 : Immediate<i16, [{
    return isUInt<8>(N->getZExtValue());
 }], UIMM8, "U8Imm">;
-def imm16zx8x : Immediate<i16, [{
-   return isUInt<8>(N->getZExtValue());
-}], UIMM8, "U8XImm">;
-def imm16sx8x : Immediate<i16, [{
+def imm16sx8 : Immediate<i16, [{
    return isInt<8>(N->getSExtValue());
-}], SIMM8, "S8XImm">;
+}], SIMM8, "S8Imm">;
 def imm16 : Immediate<i16, [{
    return true;
 }], UIMM16, "U16Imm">;
@@ -132,10 +122,10 @@ def simm8 : Immediate<i8, [{
 }], SIMM8, "S8Imm">;
 def imm8x16 : Immediate<i8, [{
    return true;
-}], UIMM16, "U16XImm">;
+}], UIMM16, "U16Imm">;
 def simm8x16 : Immediate<i8, [{
    return true;
-}], SIMM16, "S16XImm">;
+}], SIMM16, "S16Imm">;
 def imm32 : Immediate<i32, [{
    return true;
 }], UIMM32, "U32Imm">;

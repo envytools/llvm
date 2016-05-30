@@ -132,7 +132,7 @@ public:
   bool isExpr(FalconMCExpr::VariantKind ImmKind) const {
     return Kind == KindImm && Imm.Kind == ImmKind;
   }
-  bool isImm(int64_t MinValue, int64_t MaxValue, bool matchExpr) const {
+  bool isImm(int64_t MinValue, int64_t MaxValue) const {
     if (Kind != KindImm)
       return false;
     if (Imm.Kind != FalconMCExpr::VK_Falcon_None)
@@ -141,7 +141,7 @@ public:
       int64_t Value = CE->getValue();
       return Value >= MinValue && Value <= MaxValue;
     }
-    return matchExpr;
+    return true;
   }
   const MCExpr *getImm() const {
     assert(Kind == KindImm && "Not an immediate");
@@ -252,17 +252,12 @@ public:
            isGPR32(Mem.RegBase) &&
            isGPR32(Mem.RegIdx);
   }
-  bool isU8Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U8) || isExpr(FalconMCExpr::VK_Falcon_HI8) || isImm(0, 255, true); }
-  bool isU8XImm() const { return isExpr(FalconMCExpr::VK_Falcon_U8) || isExpr(FalconMCExpr::VK_Falcon_HI8) || isImm(0, 255, false); }
-  bool isS8Imm() const { return isExpr(FalconMCExpr::VK_Falcon_S8) || isImm(-128, 127, true); }
-  bool isS8XImm() const { return isExpr(FalconMCExpr::VK_Falcon_S8) || isImm(-128, 127, false); }
-  bool isU16Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U16) || isExpr(FalconMCExpr::VK_Falcon_HI16) || isImm(0, 65535, true); }
-  bool isU16XImm() const { return isExpr(FalconMCExpr::VK_Falcon_U16) || isExpr(FalconMCExpr::VK_Falcon_HI16) || isImm(0, 65535, false); }
-  bool isS16Imm() const { return isExpr(FalconMCExpr::VK_Falcon_S16) || isExpr(FalconMCExpr::VK_Falcon_LO16) || isImm(-32768, 32767, true); }
-  bool isS16XImm() const { return isExpr(FalconMCExpr::VK_Falcon_S16) || isExpr(FalconMCExpr::VK_Falcon_LO16) || isImm(-32768, 32767, false); }
-  bool isU24Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U24) || isImm(0, 0xffffff, true); }
-  bool isU24XImm() const { return isExpr(FalconMCExpr::VK_Falcon_U24) || isImm(0, 0xffffff, false); }
-  bool isU32Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U32) || isImm(0, 0xffffffff, true); }
+  bool isU8Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U8) || isExpr(FalconMCExpr::VK_Falcon_HI8) || isImm(0, 255); }
+  bool isS8Imm() const { return isExpr(FalconMCExpr::VK_Falcon_S8) || isImm(-128, 127); }
+  bool isU16Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U16) || isExpr(FalconMCExpr::VK_Falcon_HI16) || isImm(0, 65535); }
+  bool isS16Imm() const { return isExpr(FalconMCExpr::VK_Falcon_S16) || isExpr(FalconMCExpr::VK_Falcon_LO16) || isImm(-32768, 32767); }
+  bool isU24Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U24) || isImm(0, 0xffffff); }
+  bool isU32Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U32) || isImm(0, 0xffffffff); }
   bool isPCRel8() const { return isExpr(FalconMCExpr::VK_Falcon_None) || isExpr(FalconMCExpr::VK_Falcon_PC8) ; }
   bool isPCRel16() const { return isExpr(FalconMCExpr::VK_Falcon_None) || isExpr(FalconMCExpr::VK_Falcon_PC16) ; }
 };

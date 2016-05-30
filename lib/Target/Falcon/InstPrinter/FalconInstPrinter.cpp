@@ -89,17 +89,7 @@ void FalconInstPrinter::printS8ImmOperand(const MCInst *MI, int OpNum,
   printSImmOperand<8>(MI, OpNum, O);
 }
 
-void FalconInstPrinter::printS8XImmOperand(const MCInst *MI, int OpNum,
-                                          raw_ostream &O) {
-  printSImmOperand<8>(MI, OpNum, O);
-}
-
 void FalconInstPrinter::printU8ImmOperand(const MCInst *MI, int OpNum,
-                                          raw_ostream &O) {
-  printUImmOperand<8>(MI, OpNum, O);
-}
-
-void FalconInstPrinter::printU8XImmOperand(const MCInst *MI, int OpNum,
                                           raw_ostream &O) {
   printUImmOperand<8>(MI, OpNum, O);
 }
@@ -109,17 +99,7 @@ void FalconInstPrinter::printS16ImmOperand(const MCInst *MI, int OpNum,
   printSImmOperand<16>(MI, OpNum, O);
 }
 
-void FalconInstPrinter::printS16XImmOperand(const MCInst *MI, int OpNum,
-                                           raw_ostream &O) {
-  printSImmOperand<16>(MI, OpNum, O);
-}
-
 void FalconInstPrinter::printU16ImmOperand(const MCInst *MI, int OpNum,
-                                           raw_ostream &O) {
-  printUImmOperand<16>(MI, OpNum, O);
-}
-
-void FalconInstPrinter::printU16XImmOperand(const MCInst *MI, int OpNum,
                                            raw_ostream &O) {
   printUImmOperand<16>(MI, OpNum, O);
 }

@@ -84,15 +84,7 @@ public:
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
 
-  uint64_t encodeS8XImmOperand(const MCInst &MI, unsigned Op,
-                                 SmallVectorImpl<MCFixup> &Fixups,
-                                 const MCSubtargetInfo &STI) const;
-
   uint64_t encodeS16ImmOperand(const MCInst &MI, unsigned Op,
-                                 SmallVectorImpl<MCFixup> &Fixups,
-                                 const MCSubtargetInfo &STI) const;
-
-  uint64_t encodeS16XImmOperand(const MCInst &MI, unsigned Op,
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
 
@@ -100,15 +92,7 @@ public:
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
 
-  uint64_t encodeU8XImmOperand(const MCInst &MI, unsigned Op,
-                                 SmallVectorImpl<MCFixup> &Fixups,
-                                 const MCSubtargetInfo &STI) const;
-
   uint64_t encodeU16ImmOperand(const MCInst &MI, unsigned Op,
-                                 SmallVectorImpl<MCFixup> &Fixups,
-                                 const MCSubtargetInfo &STI) const;
-
-  uint64_t encodeU16XImmOperand(const MCInst &MI, unsigned Op,
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
 
@@ -299,12 +283,6 @@ uint64_t FalconMCCodeEmitter::encodeS8ImmOperand(const MCInst &MI, unsigned OpNu
   }
 }
 
-uint64_t FalconMCCodeEmitter::encodeS8XImmOperand(const MCInst &MI, unsigned OpNum,
-                                                  SmallVectorImpl<MCFixup> &Fixups,
-                                                  const MCSubtargetInfo &STI) const {
-  return encodeS8ImmOperand(MI, OpNum, Fixups, STI);
-}
-
 uint64_t FalconMCCodeEmitter::encodeS16ImmOperand(const MCInst &MI, unsigned OpNum,
                                                   SmallVectorImpl<MCFixup> &Fixups,
                                                   const MCSubtargetInfo &STI) const {
@@ -330,12 +308,6 @@ uint64_t FalconMCCodeEmitter::encodeS16ImmOperand(const MCInst &MI, unsigned OpN
     Fixups.push_back(MCFixup::create(Offset, Expr, MCFixupKind(Fixup)));
     return 0;
   }
-}
-
-uint64_t FalconMCCodeEmitter::encodeS16XImmOperand(const MCInst &MI, unsigned OpNum,
-                                                  SmallVectorImpl<MCFixup> &Fixups,
-                                                  const MCSubtargetInfo &STI) const {
-  return encodeS16ImmOperand(MI, OpNum, Fixups, STI);
 }
 
 uint64_t FalconMCCodeEmitter::encodeU8ImmOperand(const MCInst &MI, unsigned OpNum,
@@ -368,12 +340,6 @@ uint64_t FalconMCCodeEmitter::encodeU8ImmOperand(const MCInst &MI, unsigned OpNu
   }
 }
 
-uint64_t FalconMCCodeEmitter::encodeU8XImmOperand(const MCInst &MI, unsigned OpNum,
-                                                  SmallVectorImpl<MCFixup> &Fixups,
-                                                  const MCSubtargetInfo &STI) const {
-  return encodeU8ImmOperand(MI, OpNum, Fixups, STI);
-}
-
 uint64_t FalconMCCodeEmitter::encodeU16ImmOperand(const MCInst &MI, unsigned OpNum,
                                                   SmallVectorImpl<MCFixup> &Fixups,
                                                   const MCSubtargetInfo &STI) const {
@@ -399,12 +365,6 @@ uint64_t FalconMCCodeEmitter::encodeU16ImmOperand(const MCInst &MI, unsigned OpN
     Fixups.push_back(MCFixup::create(Offset, Expr, MCFixupKind(Fixup)));
     return 0;
   }
-}
-
-uint64_t FalconMCCodeEmitter::encodeU16XImmOperand(const MCInst &MI, unsigned OpNum,
-                                                  SmallVectorImpl<MCFixup> &Fixups,
-                                                  const MCSubtargetInfo &STI) const {
-  return encodeU16ImmOperand(MI, OpNum, Fixups, STI);
 }
 
 #include "FalconGenMCCodeEmitter.inc"
