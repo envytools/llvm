@@ -46,7 +46,6 @@ extern "C" void LLVMInitializeFalconDisassembler() {
                                          createFalconDisassembler);
 }
 
-#if 0
 /// tryAddingSymbolicOperand - trys to add a symbolic operand in place of the
 /// immediate Value in the MCInst.
 ///
@@ -74,7 +73,6 @@ static bool tryAddingSymbolicOperand(int64_t Value, bool isBranch,
   return Dis->tryAddingSymbolicOperand(MI, Value, Address, isBranch,
                                        Offset, Width);
 }
-#endif
 
 static DecodeStatus decodeRegisterClass(MCInst &Inst, uint64_t RegNo,
                                         const unsigned *Regs, unsigned Size) {
@@ -148,7 +146,10 @@ static DecodeStatus decodeU8ImmOperand(MCInst &Inst, uint64_t Imm,
 
 static DecodeStatus decodeU8XImmOperand(MCInst &Inst, uint64_t Imm,
                                        uint64_t Address, const void *Decoder) {
-  return decodeUImmOperand<8>(Inst, Imm);
+  if (!tryAddingSymbolicOperand(Imm, true, Address, 2, 1,
+                                Inst, Decoder))
+    return decodeUImmOperand<8>(Inst, Imm);
+  return MCDisassembler::Success;
 }
 
 static DecodeStatus decodeU16ImmOperand(MCInst &Inst, uint64_t Imm,
@@ -158,7 +159,10 @@ static DecodeStatus decodeU16ImmOperand(MCInst &Inst, uint64_t Imm,
 
 static DecodeStatus decodeU16XImmOperand(MCInst &Inst, uint64_t Imm,
                                         uint64_t Address, const void *Decoder) {
-  return decodeUImmOperand<16>(Inst, Imm);
+  if (!tryAddingSymbolicOperand(Imm, true, Address, 2, 2,
+                                Inst, Decoder))
+    return decodeUImmOperand<16>(Inst, Imm);
+  return MCDisassembler::Success;
 }
 
 static DecodeStatus decodeS8ImmOperand(MCInst &Inst, uint64_t Imm,
@@ -178,10 +182,8 @@ static DecodeStatus decodePCOperand(MCInst &Inst, uint64_t Imm,
   assert(isUInt<N>(Imm) && "Invalid PC-relative offset");
   uint64_t Value = SignExtend64<N>(Imm) + Address;
 
-#if 0
-  if (!tryAddingSymbolicOperand(Value, isBranch, Address, 2, N / 8,
+  if (!tryAddingSymbolicOperand(Value, true, Address, 2, N / 8,
                                 Inst, Decoder))
-#endif
     Inst.addOperand(MCOperand::createImm(Value));
 
   return MCDisassembler::Success;

@@ -16,6 +16,7 @@
 #include "FalconMCAsmInfo.h"
 #include "InstPrinter/FalconInstPrinter.h"
 #include "llvm/MC/MCCodeGenInfo.h"
+#include "llvm/MC/MCInstrAnalysis.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCStreamer.h"
@@ -119,6 +120,30 @@ static MCRelocationInfo *createFalconMCRelocationInfo(const Triple &TheTriple,
   return llvm::createMCRelocationInfo(TheTriple, Ctx);
 }
 
+namespace {
+
+class FalconMCInstrAnalysis : public MCInstrAnalysis {
+public:
+  FalconMCInstrAnalysis(const MCInstrInfo *Info) : MCInstrAnalysis(Info) {}
+
+  bool evaluateBranch(const MCInst &Inst, uint64_t Addr,
+                      uint64_t Size, uint64_t &Target) const override {
+    unsigned TargetOp = Inst.getNumOperands() - 1;
+    // We only handle PCRel branches for now.
+    if (!Inst.getOperand(TargetOp).isImm())
+      return false;
+
+    Target = Inst.getOperand(TargetOp).getImm();
+    return true;
+  }
+};
+
+}
+
+static MCInstrAnalysis *createFalconMCInstrAnalysis(const MCInstrInfo *Info) {
+  return new FalconMCInstrAnalysis(Info);
+}
+
 extern "C" void LLVMInitializeFalconTargetMC() {
   // Register the MC asm info.
   RegisterMCAsmInfo<FalconMCAsmInfo> X(TheFalconTarget);
@@ -135,6 +160,9 @@ extern "C" void LLVMInitializeFalconTargetMC() {
   // Register the MC subtarget info.
   TargetRegistry::RegisterMCSubtargetInfo(TheFalconTarget,
                                           createFalconMCSubtargetInfo);
+
+  // Register the MC instruction analysis.
+  TargetRegistry::RegisterMCInstrAnalysis(TheFalconTarget, createFalconMCInstrAnalysis);
 
   // Register the object streamer
   TargetRegistry::RegisterELFStreamer(TheFalconTarget, createFalconMCStreamer);
