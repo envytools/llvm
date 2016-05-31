@@ -274,11 +274,11 @@ DecodeStatus FalconDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
         break;
       case 0x31:
       case 0x37:
-      case 0x3e: // v4+; not sized, but that's not important here
         Size = 4;
         Table = DecoderTableFalcon32;
         break;
-      // 0x32, 0x33, 0x35, 0x3f invalid
+      // XXX: 0x3e valid on v4
+      // 0x32, 0x33, 0x35, 0x3e, 0x3f invalid
       default:
         return MCDisassembler::Fail;
     }
