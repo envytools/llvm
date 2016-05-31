@@ -92,9 +92,21 @@ public:
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
 
+  uint64_t encodeU8XImmOperand(const MCInst &MI, unsigned Op,
+                                 SmallVectorImpl<MCFixup> &Fixups,
+                                 const MCSubtargetInfo &STI) const {
+    return encodeU8ImmOperand(MI, Op, Fixups, STI);
+  }
+
   uint64_t encodeU16ImmOperand(const MCInst &MI, unsigned Op,
                                  SmallVectorImpl<MCFixup> &Fixups,
                                  const MCSubtargetInfo &STI) const;
+
+  uint64_t encodeU16XImmOperand(const MCInst &MI, unsigned Op,
+                                 SmallVectorImpl<MCFixup> &Fixups,
+                                 const MCSubtargetInfo &STI) const {
+    return encodeU16ImmOperand(MI, Op, Fixups, STI);
+  }
 
   void encodeInstruction(const MCInst &MI, raw_ostream &OS,
                          SmallVectorImpl<MCFixup> &Fixups,

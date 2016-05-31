@@ -61,6 +61,19 @@ void FalconInstPrinter::printPCRelOperand(const MCInst *MI, int OpNum,
 }
 
 template <unsigned N>
+static void printUXImmOperand(const MCInst *MI, int OpNum, raw_ostream &O) {
+  const MCOperand &Op = MI->getOperand(OpNum);
+  if (Op.isImm()) {
+    int64_t Value = Op.getImm();
+    assert(isUInt<N>(Value) && "Invalid uimm argument");
+    O << "0x";
+    O.write_hex(Value);
+  } else {
+    O << *Op.getExpr();
+  }
+}
+
+template <unsigned N>
 static void printUImmOperand(const MCInst *MI, int OpNum, raw_ostream &O) {
   const MCOperand &Op = MI->getOperand(OpNum);
   if (Op.isImm()) {
@@ -107,6 +120,16 @@ void FalconInstPrinter::printU16ImmOperand(const MCInst *MI, int OpNum,
 void FalconInstPrinter::printU32ImmOperand(const MCInst *MI, int OpNum,
                                            raw_ostream &O) {
   printUImmOperand<32>(MI, OpNum, O);
+}
+
+void FalconInstPrinter::printU8XImmOperand(const MCInst *MI, int OpNum,
+                                          raw_ostream &O) {
+  printUXImmOperand<8>(MI, OpNum, O);
+}
+
+void FalconInstPrinter::printU16XImmOperand(const MCInst *MI, int OpNum,
+                                           raw_ostream &O) {
+  printUXImmOperand<16>(MI, OpNum, O);
 }
 
 void FalconInstPrinter::printMemReg(const MCInst *MI, int OpNum,

@@ -260,6 +260,8 @@ public:
   bool isU32Imm() const { return isExpr(FalconMCExpr::VK_Falcon_U32) || isImm(0, 0xffffffff); }
   bool isPCRel8() const { return isExpr(FalconMCExpr::VK_Falcon_None) || isExpr(FalconMCExpr::VK_Falcon_PC8) ; }
   bool isPCRel16() const { return isExpr(FalconMCExpr::VK_Falcon_None) || isExpr(FalconMCExpr::VK_Falcon_PC16) ; }
+  bool isU8XImm() const { return isU8Imm(); }
+  bool isU16XImm() const { return isU16Imm(); }
 };
 
 class FalconAsmParser : public MCTargetAsmParser {

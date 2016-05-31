@@ -63,6 +63,8 @@ def S8Imm : ImmediateAsmOperand<"S8Imm", [S16Imm]>;
 def U32Imm : ImmediateAsmOperand<"U32Imm">;
 def U16Imm : ImmediateAsmOperand<"U16Imm">;
 def U8Imm : ImmediateAsmOperand<"U8Imm", [U16Imm]>;
+def U16XImm : ImmediateAsmOperand<"U16XImm">;
+def U8XImm : ImmediateAsmOperand<"U8XImm", [U16XImm]>;
 
 def imm24 : PatLeaf<(i32 imm), [{
   return isUInt<24>(N->getZExtValue());
@@ -129,6 +131,12 @@ def simm8x16 : Immediate<i8, [{
 def imm32 : Immediate<i32, [{
    return true;
 }], UIMM32, "U32Imm">;
+def imm32zx8x : Immediate<i32, [{
+   return isUInt<8>(N->getZExtValue());
+}], UIMM8, "U8XImm">;
+def imm32zx16x : Immediate<i32, [{
+   return isUInt<16>(N->getZExtValue());
+}], UIMM16, "U16XImm">;
 
 // pcrels.
 

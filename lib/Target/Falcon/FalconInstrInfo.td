@@ -413,16 +413,16 @@ let isBranch = 1, isIndirectBranch = 1, isTerminator = 1, isBarrier = 1, hasCtrl
 }
 // XXX wrong
 let isReturn = 1, isCall = 1, isTerminator = 1, isBarrier = 1, hasCtrlDep = 1 in {
-  def JMPi8 : InstUSI8<0x20, imm32zx8, "jmp", []>;
+  def JMPi8 : InstUSI8<0x20, imm32zx8x, "jmp", []>;
   // XXX ext to 24
-  def JMPi16 : InstUSI16<0x20, imm32zx16, "jmp", []>;
+  def JMPi16 : InstUSI16<0x20, imm32zx16x, "jmp", []>;
 }
 // XXX wrong
 let isCall = 1 in {
   def CALLr : InstUSR<0x5, "call", [(call GPR32:$R1)]>;
-  def CALLi8 : InstUSI8<0x21, imm32zx8, "call", [(call imm32zx8:$I8)]>;
+  def CALLi8 : InstUSI8<0x21, imm32zx8x, "call", [(call imm32zx8x:$I8)]>;
   // XXX ext to 24
-  def CALLi16 : InstUSI16<0x21, imm32zx16, "call", [(call imm32zx16:$I16)]>;
+  def CALLi16 : InstUSI16<0x21, imm32zx16x, "call", [(call imm32zx16x:$I16)]>;
 }
 // XXX
 def ITLBr : InstUSR<0x8, "itlb", [(int_falcon_itlb GPR32:$R1)]>;

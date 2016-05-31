@@ -44,6 +44,8 @@ private:
   void printMemRegImm(const MCInst *MI, int OpNum, raw_ostream &O);
   void printMemSpReg(const MCInst *MI, int OpNum, raw_ostream &O);
   void printMemSpImm(const MCInst *MI, int OpNum, raw_ostream &O);
+  void printU8XImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
+  void printU16XImmOperand(const MCInst *MI, int OpNum, raw_ostream &O);
 };
 }
 
