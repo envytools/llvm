@@ -14,12 +14,11 @@ xdbar
 # CHECK: xcwait           # encoding: [0xf8,0x07]
 xcwait
 
-# XXX
-# C-HECK: trap 0           # encoding: [0xf8,0x08]
-#trap 0
-# C-HECK: trap 1           # encoding: [0xf8,0x09]
-#trap 1
-# C-HECK: trap 2           # encoding: [0xf8,0x0a]
-#trap 2
-# C-HECK: trap 3           # encoding: [0xf8,0x0b]
-#trap 3
+# CHECK: trap0            # encoding: [0xf8,0x08]
+trap0
+# CHECK: trap1            # encoding: [0xf8,0x09]
+trap1
+# CHECK: trap2            # encoding: [0xf8,0x0a]
+trap2
+# CHECK: trap3            # encoding: [0xf8,0x0b]
+trap3

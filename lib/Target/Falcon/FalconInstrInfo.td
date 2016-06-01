@@ -394,10 +394,10 @@ def XDBAR : InstUM<0x06, "xdbar", [(int_falcon_xdbar)]>;
 def XCWAIT : InstUM<0x07, "xcwait", [(int_falcon_xcwait)]>;
 // No intrinsics for those - we treat them as syscalls.
 let isCall = 1 in {
-  def TRAP0 : InstUM<0x08, "trap\t0", []>;
-  def TRAP1 : InstUM<0x09, "trap\t1", []>;
-  def TRAP2 : InstUM<0x0a, "trap\t2", []>;
-  def TRAP3 : InstUM<0x0b, "trap\t3", []>;
+  def TRAP0 : InstUM<0x08, "trap0", []>;
+  def TRAP1 : InstUM<0x09, "trap1", []>;
+  def TRAP2 : InstUM<0x0a, "trap2", []>;
+  def TRAP3 : InstUM<0x0b, "trap3", []>;
 }
 
 // XXX patterns for these?
