@@ -437,15 +437,14 @@ let Defs = [CC_S, CC_Z], Uses = [FLAGS] in {
   def GETFrr : InstUURR<0xc, "getf", []>;
 }
 
-def SETFi8 : InstOI8<0xf4, 0x31, (outs FLAG:$I8), (ins), "setf\t$I8", [(set FLAG:$I8, -1)]>;
-def CLRFi8 : InstOI8<0xf4, 0x32, (outs FLAG:$I8), (ins), "clrf\t$I8", [(set FLAG:$I8, 0)]>;
-let Constraints = "$F = $I8" in
-  def TGLFi8 : InstOI8<0xf4, 0x33, (outs FLAG:$F), (ins FLAG:$I8), "tglf\t$I8", [(set FLAG:$F, (not FLAG:$I8))]>;
+def SETFi8 : InstUFSI8<0x31, "setf", [(set FLAG:$I8, -1)]>;
+def CLRFi8 : InstUFSI8<0x32, "clrf", [(set FLAG:$I8, 0)]>;
+def TGLFi8 : InstUFTI8<0x33, "tglf", [(set FLAG:$F, (not FLAG:$I8))]>;
 let Defs = [CC_S, CC_Z] in
-  def GETFri8 : InstORI8<3, 0x30, 0xc, (outs GPR32:$R1), (ins FLAG:$I8), "getf\t$R1, $I8", [(set GPR32:$R1, (zext FLAG:$I8))]>;
-def PUTFri8 : InstORI8<3, 0x32, 0x8, (outs FLAG:$I8), (ins GPR32:$R1), "putf\t$I8, $R1", [(set FLAG:$I8, (trunc GPR32:$R1))]>;
+  def GETFri8 : InstUFSRI8<0xc, "getf", [(set GPR32:$R1, (zext FLAG:$I8))]>;
+def PUTFri8 : InstUFLRI8<0x8, "putf", [(set FLAG:$I8, (trunc GPR32:$R1))]>;
 
-def WAITi8 : InstOI8<0xf4, 0x28, (outs), (ins FLAG:$I8), "wait\t$I8", []>;
+def WAITi8 : InstUFWI8<0x28, "wait", []>;
 
 def : Pat<(i32 (anyext FLAG:$val)), (GETFri8 FLAG:$val)>;
 

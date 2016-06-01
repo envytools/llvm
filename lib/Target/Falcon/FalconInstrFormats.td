@@ -461,6 +461,10 @@ class InstUBRI8<bits<4> op, Immediate mimm8, string asmname, list<dag> pattern>
   let Constraints = "$R2 = $R1";
 }
 
+// Unsized, Flag Store, Reg, Imm8
+class InstUFSRI8<bits<4> op, string asmname, list<dag> pattern>
+  : InstORI8<3, 0x30, op, (outs GPR32:$R1), (ins FLAG:$I8), asmname # "\t$R1, $I8", pattern>;
+
 // Unsized, Binary, Reg, Imm16
 class InstUBRI16<bits<4> op, Immediate mimm16, string asmname, list<dag> pattern>
   : InstORI16<3, 0x31, op, (outs GPR32:$R2), (ins GPR32:$R1, mimm16:$I16), asmname # "\t$R1, $I16", pattern>,
@@ -534,6 +538,10 @@ class InstUSRMRI8<bits<4> op, string asmname, list<dag> pattern>
 class InstUSRI8<bits<4> op, string asmname, list<dag> pattern>
   : InstORI8<3, 0x32, op, (outs), (ins imm32zx8:$I8, GPR32:$R1), asmname # "\t$I8, $R1", pattern>;
 
+// Unsized, Flag Load, Reg, Imm8
+class InstUFLRI8<bits<4> op, string asmname, list<dag> pattern>
+  : InstORI8<3, 0x32, op, (outs FLAG:$I8), (ins GPR32:$R1), asmname # "\t$I8, $R1", pattern>;
+
 // Unsized, Sink, Reg
 class InstUSR<bits<4> op, string asmname, list<dag> pattern>
   : InstOR<3, 0x39, op, (outs), (ins GPR32:$R1), asmname # "\t$R1", pattern>;
@@ -580,6 +588,20 @@ class InstUJRFI16<bits<4> op, string asmname, list<dag> pattern>
 class InstUSI8<bits<8> op, Immediate mimm8, string asmname, list<dag> pattern>
   : InstOI8<0xf4, op, (outs), (ins mimm8:$I8), asmname # "\t$I8", pattern>,
     FalconRelaxInst<asmname # "i", "8">;
+
+// Unsized, Flag Set, Imm8
+class InstUFSI8<bits<8> op, string asmname, list<dag> pattern>
+  : InstOI8<0xf4, op, (outs FLAG:$I8), (ins), asmname # "\t$I8", pattern>;
+
+// Unsized, Flag Toggle, Imm8
+class InstUFTI8<bits<8> op, string asmname, list<dag> pattern>
+  : InstOI8<0xf4, op, (outs FLAG:$F), (ins FLAG:$I8), asmname # "\t$I8", pattern> {
+  let Constraints = "$F = $I8";
+}
+
+// Unsized, Flag Wait, Imm8
+class InstUFWI8<bits<8> op, string asmname, list<dag> pattern>
+  : InstOI8<0xf4, op, (outs), (ins FLAG:$I8), asmname # "\t$I8", pattern>;
 
 // Unsized, Sink, Imm16
 class InstUSI16<bits<8> op, Immediate mimm16, string asmname, list<dag> pattern>
