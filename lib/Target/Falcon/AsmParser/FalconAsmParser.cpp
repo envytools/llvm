@@ -204,7 +204,7 @@ public:
     if (!Disp)
       return false;
     if (auto *CE = dyn_cast<MCConstantExpr>(Disp)) {
-      int64_t Value = CE->getValue();
+      uint64_t Value = CE->getValue();
       if (Value & ((1 << shift) - 1))
         return false;
       if (Value >= (1 << (shift + 8)))

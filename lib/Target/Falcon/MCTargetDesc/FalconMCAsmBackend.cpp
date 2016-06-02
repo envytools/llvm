@@ -28,50 +28,50 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value, MCContext
   case Falcon::FK_FALCON_PC8:
   case FK_PCRel_1:
     if (Ctx && Value >= 0x80 && Value < uint64_t(-0x80))
-      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+      Ctx->reportError(Fixup.getLoc(), "s8 fixup value out of range");
     return Value;
 
   case Falcon::FK_FALCON_S16:
   case Falcon::FK_FALCON_PC16:
   case FK_PCRel_2:
     if (Ctx && Value >= 0x8000 && Value < uint64_t(-0x8000))
-      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+      Ctx->reportError(Fixup.getLoc(), "s16 fixup value out of range");
     return Value;
 
   case Falcon::FK_FALCON_U8:
     if (Ctx && Value >= 0x100)
-      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+      Ctx->reportError(Fixup.getLoc(), "u8 fixup value out of range");
     return Value;
 
   case Falcon::FK_FALCON_U16:
     if (Ctx && Value >= 0x10000)
-      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+      Ctx->reportError(Fixup.getLoc(), "u16 fixup value out of range");
     return Value;
 
   case Falcon::FK_FALCON_U24:
     if (Ctx && Value >= 0x1000000)
-      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+      Ctx->reportError(Fixup.getLoc(), "u24 fixup value out of range");
     return Value;
 
   case Falcon::FK_FALCON_HI8:
     if (Ctx && Value >= 0x1000000)
-      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+      Ctx->reportError(Fixup.getLoc(), "hi8 fixup value out of range");
     // fallthru
   case Falcon::FK_FALCON_HI16:
     return Value >> 16;
 
   case Falcon::FK_FALCON_U8S1:
     if (Ctx && Value >= 0x200)
-      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+      Ctx->reportError(Fixup.getLoc(), "u8s1 fixup value out of range");
     if (Ctx && Value & 1)
-      Ctx->reportError(Fixup.getLoc(), "fixup value unaligned");
+      Ctx->reportError(Fixup.getLoc(), "u8s1 fixup value unaligned");
     return Value >> 1;
 
   case Falcon::FK_FALCON_U8S2:
     if (Ctx && Value >= 0x400)
-      Ctx->reportError(Fixup.getLoc(), "fixup value out of range");
+      Ctx->reportError(Fixup.getLoc(), "u8s2 fixup value out of range");
     if (Ctx && Value & 3)
-      Ctx->reportError(Fixup.getLoc(), "fixup value unaligned");
+      Ctx->reportError(Fixup.getLoc(), "u8s2 fixup value unaligned");
     return Value >> 2;
   }
 }
