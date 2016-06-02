@@ -1,240 +1,79 @@
-# RUN: llvm-mc -triple falcon3 --show-encoding %s | FileCheck %s
-# RUN: llvm-mc -triple falcon3 -filetype=obj %s | \
-# RUN: llvm-readobj -r | FileCheck %s -check-prefix=CHECK-REL
+# RUN: llvm-mc -filetype=obj -triple=falcon3 %s | llvm-objdump -d - | FileCheck %s
 
-# .align won't work otherwise.
-.data
+# CHECK: f8 00 ret
+ret
 
-# CHECK: mov %r0, target          # encoding: [0xf0,0x07,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S8R
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S16 target 0x0
-.align 16
-mov %r0, target
+# CHECK-NEXT: f1 07 00 c0     mov %r0, -16384
+# CHECK-NEXT: f1 07 00 c0     mov %r0, -16384
+# CHECK-NEXT: f0 07 c0        mov %r0, -64
+# CHECK-NEXT: f1 07 c0 ff     mov %r0, -64
+# CHECK-NEXT: f0 07 c0        mov %r0, -64
+# CHECK-NEXT: f1 07 78 56     mov %r0,
+# CHECK-NEXT: f1 07 ef cd     mov %r0,
+# CHECK-NEXT: f1 07 56 00     mov %r0,
+mov %r0, s16
+mov %r0, %s16(s16)
+mov %r0, s8
+mov %r0, %s16(s8)
+mov %r0, %s8(s8)
+mov %r0, %lo16(u32)
+mov %r0, %lo16(x32)
+mov %r0, %lo16(y32)
 
-# CHECK: mov %r0, %s8(target)     # encoding: [0xf0,0x07,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S8 target 0x0
-.align 16
-mov %r0, %s8(target)
+# CHECK-NEXT: 31 05 00 c0     cmps %r0b, -16384
+# CHECK-NEXT: 30 05 c0        cmps %r0b, -64
+# CHECK-NEXT: 31 05 c0 ff     cmps %r0b, -64
+# CHECK-NEXT: 30 05 c0        cmps %r0b, -64
+cmps %r0b, %s16(s16)
+cmps %r0b, s8
+cmps %r0b, %s16(s8)
+cmps %r0b, %s8(s8)
 
-# CHECK: mov %r0, %s16(target)    # encoding: [0xf1,0x07,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S16 target 0x0
-.align 16
-mov %r0, %s16(target)
+# CHECK-NEXT: f1 03 00 c0     sethi %r0, 49152
+# CHECK-NEXT: f1 03 00 c0     sethi %r0, 49152
+# CHECK-NEXT: f0 03 c0        sethi %r0, 192
+# CHECK-NEXT: f1 03 c0 00     sethi %r0, 192
+# CHECK-NEXT: f0 03 c0        sethi %r0, 192
+# CHECK-NEXT: f1 03 34 12     sethi %r0,
+# CHECK-NEXT: f1 03 ab 89     sethi %r0,
+# CHECK-NEXT: f1 03 34 12     sethi %r0,
+# CHECK-NEXT: f0 03 12        sethi %r0,
+# CHECK-NEXT: f0 03 ab        sethi %r0,
+sethi %r0, u16
+sethi %r0, %u16(u16)
+sethi %r0, u8
+sethi %r0, %u16(u8)
+sethi %r0, %u8(u8)
+sethi %r0, %hi16(u32)
+sethi %r0, %hi16(x32)
+sethi %r0, %hi16(y32)
+sethi %r0, %hi8(u24)
+sethi %r0, %hi8(x24)
 
-# CHECK: mov %r0, %lo16(target)   # encoding: [0xf1,0x07,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_LO16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_LO16 target 0x0
-.align 16
-mov %r0, %lo16(target)
+# CHECK-NEXT: f4 0e 7f        bra
+# CHECK-NEXT: f5 0e 80 00     bra
+bra .+0x7f
+bra .+0x80
 
-# CHECK: sethi %r0, target        # encoding: [0xf0,0x03,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8R
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_16 target 0x0
-.align 16
-sethi %r0, target
+# CHECK-NEXT: 18 00 c0        ld %r0b, 192(%r0)
+# CHECK-NEXT: 58 00 60        ld %r0h, 192(%r0)
+# CHECK-NEXT: 98 00 30        ld %r0, 192(%r0)
+# CHECK-NEXT: 58 00 c0        ld %r0h, 384(%r0)
+# CHECK-NEXT: 98 00 c0        ld %r0, 768(%r0)
+ld %r0b, u8(%r0)
+ld %r0h, u8(%r0)
+ld %r0, u8(%r0)
+ld %r0h, u8s1(%r0)
+ld %r0, u8s2(%r0)
 
-# CHECK: sethi %r0, %u8(target)   # encoding: [0xf0,0x03,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8 target 0x0
-.align 16
-sethi %r0, %u8(target)
-
-# CHECK: sethi %r0, %u16(target)  # encoding: [0xf1,0x03,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_16 target 0x0
-.align 16
-sethi %r0, %u16(target)
-
-# CHECK: sethi %r0, %hi8(target)  # encoding: [0xf0,0x03,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_HI8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_HI8 target 0x0
-.align 16
-sethi %r0, %hi8(target)
-
-# CHECK: sethi %r0, %hi16(target) # encoding: [0xf1,0x03,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_HI16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_HI16 target 0x0
-.align 16
-sethi %r0, %hi16(target)
-
-# CHECK: ld %r0b, target(%r0)     # encoding: [0x18,0x00,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8 target 0x0
-.align 16
-ld %r0b, target(%r0)
-
-# CHECK: ld %r0h, target(%r0)     # encoding: [0x58,0x00,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8S1
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8S1 target 0x0
-.align 16
-ld %r0h, target(%r0)
-
-# CHECK: ld %r0, target(%r0)      # encoding: [0x98,0x00,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8S2
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8S2 target 0x0
-.align 16
-ld %r0, target(%r0)
-
-# CHECK: cmps %r0b, target        # encoding: [0x30,0x05,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S8 target 0x0
-.align 16
-cmps %r0b, target
-
-# CHECK: cmps %r0b, %s8(target)   # encoding: [0x30,0x05,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S8 target 0x0
-.align 16
-cmps %r0b, %s8(target)
-
-# CHECK: cmps %r0b, %s16(target)  # encoding: [0x31,0x05,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S16 target 0x0
-.align 16
-cmps %r0b, %s16(target)
-
-# CHECK: cmps %r0h, target        # encoding: [0x70,0x05,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S8R
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S16 target 0x0
-.align 16
-cmps %r0h, target
-
-# CHECK: cmps %r0h, %s8(target)   # encoding: [0x70,0x05,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S8 target 0x0
-.align 16
-cmps %r0h, %s8(target)
-
-# CHECK: cmps %r0h, %s16(target)  # encoding: [0x71,0x05,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S16 target 0x0
-.align 16
-cmps %r0h, %s16(target)
-
-# CHECK: cmps %r0, target         # encoding: [0xb0,0x05,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S8R
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S16 target 0x0
-.align 16
-cmps %r0, target
-
-# CHECK: cmps %r0, %s8(target)    # encoding: [0xb0,0x05,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S8 target 0x0
-.align 16
-cmps %r0, %s8(target)
-
-# CHECK: cmps %r0, %s16(target)   # encoding: [0xb1,0x05,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_S16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_S16 target 0x0
-.align 16
-cmps %r0, %s16(target)
-
-# CHECK: cmpu %r0b, target        # encoding: [0x30,0x04,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8 target 0x0
-.align 16
-cmpu %r0b, target
-
-# CHECK: cmpu %r0b, %u8(target)   # encoding: [0x30,0x04,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8 target 0x0
-.align 16
-cmpu %r0b, %u8(target)
-
-# CHECK: cmpu %r0b, %u16(target)  # encoding: [0x31,0x04,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_16 target 0x0
-.align 16
-cmpu %r0b, %u16(target)
-
-# CHECK: cmpu %r0h, target        # encoding: [0x70,0x04,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8R
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_16 target 0x0
-.align 16
-cmpu %r0h, target
-
-# CHECK: cmpu %r0h, %u8(target)   # encoding: [0x70,0x04,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8 target 0x0
-.align 16
-cmpu %r0h, %u8(target)
-
-# CHECK: cmpu %r0h, %u16(target)  # encoding: [0x71,0x04,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_16 target 0x0
-.align 16
-cmpu %r0h, %u16(target)
-
-# CHECK: cmpu %r0, target         # encoding: [0xb0,0x04,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8R
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_16 target 0x0
-.align 16
-cmpu %r0, target
-
-# CHECK: cmpu %r0, %u8(target)    # encoding: [0xb0,0x04,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8 target 0x0
-.align 16
-cmpu %r0, %u8(target)
-
-# CHECK: cmpu %r0, %u16(target)   # encoding: [0xb1,0x04,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_16 target 0x0
-.align 16
-cmpu %r0, %u16(target)
-
-# CHECK: shl %r0, target          # encoding: [0xb6,0x04,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8 target 0x0
-.align 16
-shl %r0, target
-
-# CHECK: shl %r0, %u8(target)     # encoding: [0xb6,0x04,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target, kind: FK_FALCON_U8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_8 target 0x0
-.align 16
-shl %r0, %u8(target)
-
-# CHECK: bra target               # encoding: [0xf4,0x0e,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target+2, kind: FK_FALCON_PC8R
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_PC16 target 0x2
-.align 16
-bra target
-
-# CHECK: bra %pc8(target)         # encoding: [0xf4,0x0e,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target+2, kind: FK_FALCON_PC8
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_PC8 target 0x2
-.align 16
-bra %pc8(target)
-
-# CHECK: bra %pc16(target)        # encoding: [0xf5,0x0e,A,A]
-# CHECK-NEXT:                     # fixup A - offset: 2, value: target+2, kind: FK_FALCON_PC16
-# CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_PC16 target 0x2
-.align 16
-bra %pc16(target)
-
-# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_8 target
-.align 16
-.byte target
-
-# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_16 target
-.align 16
-.short target
-
-# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_32 target
-.align 16
-.long target
-
-# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_PC8 target
-.align 16
-.byte target-.
-
-# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_PC16 target
-.align 16
-.short target-.
-
-# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_PC32 target
-.align 16
-.long target-.
+s16 = -0x4000
+u16 = 0xc000
+u8 = 0xc0
+s8 = -0x40
+u32 = 0x12345678
+x32 = 0x89abcdef
+y32 = 0x12340056
+u24 = 0x123456
+x24 = 0xabcdef
+u8s1 = 0x180
+u8s2 = 0x300
