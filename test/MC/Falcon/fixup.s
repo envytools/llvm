@@ -214,3 +214,27 @@ bra %pc8(target)
 # CHECK-REL:                      0x{{[0-9A-F]*2}} R_FALCON_PC16 target 0x2
 .align 16
 bra %pc16(target)
+
+# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_8 target
+.align 16
+.byte target
+
+# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_16 target
+.align 16
+.short target
+
+# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_32 target
+.align 16
+.long target
+
+# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_PC8 target
+.align 16
+.byte target-.
+
+# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_PC16 target
+.align 16
+.short target-.
+
+# CHECK-REL:                      0x{{[0-9A-F]*0}} R_FALCON_PC32 target
+.align 16
+.long target-.
