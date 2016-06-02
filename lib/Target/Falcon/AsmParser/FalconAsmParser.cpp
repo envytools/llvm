@@ -396,19 +396,18 @@ bool FalconAsmParser::parseOperand(OperandVector &Operands,
     if (Reg == 0) {
       // Not a register - try immediate expression.
       FalconMCExpr::VariantKind Kind = FalconMCExpr::parseVariantKind(Name);
-      if (Kind == FalconMCExpr::VK_Falcon_None) {
-        return true;
-      }
+      if (Kind == FalconMCExpr::VK_Falcon_None)
+        return Error(StartLoc, "invalid register");
       // Skip LParen
       if (getLexer().isNot(AsmToken::LParen))
-        return true;
+        return Error(Parser.getTok().getLoc(), "opening ( expected");
       Parser.Lex();
       const MCExpr *Expr = nullptr;
       if (getParser().parseExpression(Expr))
         return true;
       // Skip RParen
       if (getLexer().isNot(AsmToken::RParen))
-        return true;
+        return Error(Parser.getTok().getLoc(), "closing ) expected");
       Parser.Lex();
       SMLoc EndLoc =
         SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
