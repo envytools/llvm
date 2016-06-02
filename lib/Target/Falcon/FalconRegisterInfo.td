@@ -128,4 +128,5 @@ let HWEncoding = 8, SubRegIndices = [
 ] in
   def FLAGS : FalconRegWithSubregs<"flags", [P0, P1, P2, P3, P4, P5, P6, P7, CC_C, CC_O, CC_S, CC_Z, IE0, IE1, SIE0, SIE1, TA]>, DwarfRegNum<[0x18]>;
 
-def SR : RegisterClass<"Falcon", [i32], 32, (add IV0, IV1, TV, SP, PC, XDBASE, XCBASE, FLAGS, CX, CAUTH, XPORTS, TSTAT)>;
+def SRR : RegisterClass<"Falcon", [i32], 32, (add IV0, IV1, TV, SP, PC, XDBASE, XCBASE, FLAGS, CX, CAUTH, XPORTS, TSTAT)>;
+def SRW : RegisterClass<"Falcon", [i32], 32, (add IV0, IV1, TV, SP, XDBASE, XCBASE, FLAGS, CAUTH, XPORTS, TSTAT)>;

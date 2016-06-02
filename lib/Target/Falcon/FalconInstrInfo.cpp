@@ -46,10 +46,10 @@ void FalconInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
   else if (Falcon::GPR32RegClass.contains(DestReg, SrcReg))
     BuildMI(MBB, I, DL, get(Falcon::MOVwrr), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc));
-  else if (Falcon::GPR32RegClass.contains(DestReg) && Falcon::SRRegClass.contains(SrcReg))
+  else if (Falcon::GPR32RegClass.contains(DestReg) && Falcon::SRRRegClass.contains(SrcReg))
     BuildMI(MBB, I, DL, get(Falcon::S2Rrr), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc));
-  else if (Falcon::SRRegClass.contains(DestReg) && Falcon::GPR32RegClass.contains(SrcReg))
+  else if (Falcon::SRWRegClass.contains(DestReg) && Falcon::GPR32RegClass.contains(SrcReg))
     BuildMI(MBB, I, DL, get(Falcon::R2Srr), DestReg)
         .addReg(SrcReg, getKillRegState(KillSrc));
   else

@@ -67,10 +67,17 @@ const unsigned FalconMC::FLAGRegs[32] = {
   Falcon::TA, 0, 0, 0, 0, 0, 0, 0,
 };
 
-const unsigned FalconMC::SRRegs[16] = {
+const unsigned FalconMC::SRRRegs[16] = {
   Falcon::IV0, Falcon::IV1, 0, Falcon::TV,
   Falcon::SP, Falcon::PC, Falcon::XCBASE, Falcon::XDBASE,
   Falcon::FLAGS, Falcon::CX, Falcon::CAUTH, Falcon::XPORTS,
+  Falcon::TSTAT, 0, 0, 0,
+};
+
+const unsigned FalconMC::SRWRegs[16] = {
+  Falcon::IV0, Falcon::IV1, 0, Falcon::TV,
+  Falcon::SP, 0, Falcon::XCBASE, Falcon::XDBASE,
+  Falcon::FLAGS, 0, Falcon::CAUTH, Falcon::XPORTS,
   Falcon::TSTAT, 0, 0, 0,
 };
 

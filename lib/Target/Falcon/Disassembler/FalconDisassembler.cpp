@@ -108,10 +108,16 @@ static DecodeStatus DecodeGPR32RegisterClass(MCInst &Inst, uint64_t RegNo,
   return decodeRegisterClass(Inst, RegNo, FalconMC::GPR32Regs, 16);
 }
 
-static DecodeStatus DecodeSRRegisterClass(MCInst &Inst, uint64_t RegNo,
+static DecodeStatus DecodeSRRRegisterClass(MCInst &Inst, uint64_t RegNo,
                                           uint64_t Address,
                                           const void *Decoder) {
-  return decodeRegisterClass(Inst, RegNo, FalconMC::SRRegs, 16);
+  return decodeRegisterClass(Inst, RegNo, FalconMC::SRRRegs, 16);
+}
+
+static DecodeStatus DecodeSRWRegisterClass(MCInst &Inst, uint64_t RegNo,
+                                          uint64_t Address,
+                                          const void *Decoder) {
+  return decodeRegisterClass(Inst, RegNo, FalconMC::SRWRegs, 16);
 }
 
 static DecodeStatus DecodePREDRegisterClass(MCInst &Inst, uint64_t RegNo,

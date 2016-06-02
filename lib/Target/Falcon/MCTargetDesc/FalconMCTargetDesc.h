@@ -51,7 +51,8 @@ extern const unsigned GPR8Regs[16];
 extern const unsigned GPR16Regs[16];
 extern const unsigned GPR32Regs[16];
 extern const unsigned FLAGRegs[32];
-extern const unsigned SRRegs[16];
+extern const unsigned SRRRegs[16];
+extern const unsigned SRWRegs[16];
 }
 
 MCCodeEmitter *createFalconMCCodeEmitter(const MCInstrInfo &MCII,

@@ -546,11 +546,11 @@ class InstUURR<bits<4> op, string asmname, list<dag> pattern>
 
 // Unsized, Unary, SReg, Reg
 class InstUUSR<bits<4> op, string asmname, list<dag> pattern>
-  : InstORR<3, 0x3e, op, (outs SR:$R2), (ins GPR32:$R1), asmname # "\t$R2, $R1", pattern>;
+  : InstORR<3, 0x3e, op, (outs SRW:$R2), (ins GPR32:$R1), asmname # "\t$R2, $R1", pattern>;
 
 // Unsized, Unary, Reg, SReg
 class InstUURS<bits<4> op, string asmname, list<dag> pattern>
-  : InstORR<3, 0x3e, op, (outs GPR32:$R2), (ins SR:$R1), asmname # "\t$R2, $R1", pattern>;
+  : InstORR<3, 0x3e, op, (outs GPR32:$R2), (ins SRR:$R1), asmname # "\t$R2, $R1", pattern>;
 
 // Unsized sink instructions
 
