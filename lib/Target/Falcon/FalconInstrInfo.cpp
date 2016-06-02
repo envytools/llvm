@@ -15,7 +15,7 @@
 #include "FalconInstrInfo.h"
 #include "FalconSubtarget.h"
 #include "FalconTargetMachine.h"
-#include "MCTargetDesc/FalconMCInstrMap.h"
+#include "MCTargetDesc/FalconMCTargetDesc.h"
 #include "llvm/CodeGen/LiveVariables.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
@@ -129,15 +129,23 @@ void FalconInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
   if (I != MBB.end())
     DL = I->getDebugLoc();
 
-  // XXX
-#if 0
-  if (RC == &Falcon::GPRRegClass)
-    BuildMI(MBB, I, DL, get(Falcon::STD))
-        .addReg(SrcReg, getKillRegState(IsKill))
+  // XXX PRED
+  if (RC == &Falcon::GPR8RegClass)
+    BuildMI(MBB, I, DL, get(Falcon::STbrmri8))
         .addFrameIndex(FI)
-        .addImm(0);
+        .addImm(0)
+        .addReg(SrcReg, getKillRegState(IsKill));
+  else if (RC == &Falcon::GPR16RegClass)
+    BuildMI(MBB, I, DL, get(Falcon::SThrmri8))
+        .addFrameIndex(FI)
+        .addImm(0)
+        .addReg(SrcReg, getKillRegState(IsKill));
+  else if (RC == &Falcon::GPR32RegClass)
+    BuildMI(MBB, I, DL, get(Falcon::STwrmri8))
+        .addFrameIndex(FI)
+        .addImm(0)
+        .addReg(SrcReg, getKillRegState(IsKill));
   else
-#endif
     llvm_unreachable("Can't store this register to stack slot");
 }
 
@@ -150,12 +158,20 @@ void FalconInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
   if (I != MBB.end())
     DL = I->getDebugLoc();
 
-  // XXX
-#if 0
-  if (RC == &Falcon::GPRRegClass)
-    BuildMI(MBB, I, DL, get(Falcon::LDD), DestReg).addFrameIndex(FI).addImm(0);
+  // XXX PRED
+  if (RC == &Falcon::GPR8RegClass)
+    BuildMI(MBB, I, DL, get(Falcon::LDbrmri8), DestReg)
+        .addFrameIndex(FI)
+        .addImm(0);
+  else if (RC == &Falcon::GPR16RegClass)
+    BuildMI(MBB, I, DL, get(Falcon::LDhrmri8), DestReg)
+        .addFrameIndex(FI)
+        .addImm(0);
+  else if (RC == &Falcon::GPR32RegClass)
+    BuildMI(MBB, I, DL, get(Falcon::LDwrmri8), DestReg)
+        .addFrameIndex(FI)
+        .addImm(0);
   else
-#endif
     llvm_unreachable("Can't load this register from stack slot");
 }
 

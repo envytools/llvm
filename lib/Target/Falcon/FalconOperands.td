@@ -277,3 +277,5 @@ def memspi2 : Operand<i32> {
   let DecoderMethod = "decodeMemImmOperands<2>";
   let ParserMatchClass = MemSpImm2;
 }
+
+def memfi : ComplexPattern<i32, 2, "SelectMemFI", [add, frameindex]>;

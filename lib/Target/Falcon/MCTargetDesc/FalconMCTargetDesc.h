@@ -14,6 +14,7 @@
 #ifndef LLVM_LIB_TARGET_FALCON_MCTARGETDESC_FALCONMCTARGETDESC_H
 #define LLVM_LIB_TARGET_FALCON_MCTARGETDESC_FALCONMCTARGETDESC_H
 
+#include "llvm/Support/Compiler.h"
 #include "llvm/Support/DataTypes.h"
 #include "llvm/Config/config.h"
 
@@ -32,6 +33,16 @@ class raw_ostream;
 class raw_pwrite_stream;
 
 extern Target TheFalconTarget;
+
+namespace Falcon {
+  LLVM_READONLY int getRelaxedOpcodeS1(uint16_t Opcode);
+  LLVM_READONLY int getRelaxedOpcodeS2(uint16_t Opcode);
+  LLVM_READONLY int getRelaxedOpcodeU(uint16_t Opcode);
+  LLVM_READONLY int getRelaxedOpcodePC(uint16_t Opcode);
+  LLVM_READONLY int getThreeOperandOpcode(uint16_t Opcode);
+  LLVM_READONLY int getRelaxedOpcode(uint16_t Opcode);
+  LLVM_READONLY int getRelaxedOpcode(uint16_t Opcode, bool &isPCRel);
+}
 
 namespace FalconMC {
 // Maps of asm register numbers to LLVM register numbers, with 0 indicating

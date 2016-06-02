@@ -22,12 +22,16 @@ class FalconSubtarget;
 class FalconFrameLowering : public TargetFrameLowering {
 public:
   explicit FalconFrameLowering(const FalconSubtarget &sti)
-      : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, 8, 0) {}
+      : TargetFrameLowering(TargetFrameLowering::StackGrowsDown, 4, 0, 4) {}
 
   void emitPrologue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
   void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
 
+  bool isFPCloseToIncomingSP() const override { return false; }
+
   bool hasFP(const MachineFunction &MF) const override;
+  int getFrameIndexReference(const MachineFunction &MF, int FI,
+                             unsigned &FrameReg) const override;
   void determineCalleeSaves(MachineFunction &MF, BitVector &SavedRegs,
                             RegScavenger *RS) const override;
 

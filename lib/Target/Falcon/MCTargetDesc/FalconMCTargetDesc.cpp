@@ -25,6 +25,7 @@
 #include "llvm/Support/TargetRegistry.h"
 
 #define GET_INSTRINFO_MC_DESC
+#define GET_INSTRMAP_INFO
 #include "FalconGenInstrInfo.inc"
 
 #define GET_SUBTARGETINFO_MC_DESC
@@ -72,6 +73,25 @@ const unsigned FalconMC::SRRegs[16] = {
   Falcon::FLAGS, Falcon::CX, Falcon::CAUTH, Falcon::XPORTS,
   Falcon::TSTAT, 0, 0, 0,
 };
+
+LLVM_READONLY int Falcon::getRelaxedOpcode(uint16_t Opcode, bool &isPCRel) {
+  isPCRel = false;
+  int res = Falcon::getRelaxedOpcodeS1(Opcode);
+  if (res == -1)
+    res = Falcon::getRelaxedOpcodeS2(Opcode);
+  if (res == -1)
+    res = Falcon::getRelaxedOpcodeU(Opcode);
+  if (res == -1) {
+    isPCRel = true;
+    res = Falcon::getRelaxedOpcodePC(Opcode);
+  }
+  return res;
+}
+
+LLVM_READONLY int Falcon::getRelaxedOpcode(uint16_t Opcode) {
+  bool isPCRel;
+  return Falcon::getRelaxedOpcode(Opcode, isPCRel);
+}
 
 static MCInstrInfo *createFalconMCInstrInfo() {
   MCInstrInfo *X = new MCInstrInfo();

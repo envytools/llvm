@@ -10,16 +10,12 @@
 #include "MCTargetDesc/FalconMCTargetDesc.h"
 #include "MCTargetDesc/FalconMCExpr.h"
 #include "MCTargetDesc/FalconMCFixups.h"
-#include "MCTargetDesc/FalconMCInstrMap.h"
 #include "llvm/MC/MCAsmBackend.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCELFObjectWriter.h"
 #include "llvm/MC/MCFixupKindInfo.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCObjectWriter.h"
-
-#define GET_INSTRMAP_INFO
-#include "FalconGenInstrInfo.inc"
 
 using namespace llvm;
 
@@ -170,14 +166,14 @@ void FalconMCAsmBackend::processFixupValue(
 }
 
 bool FalconMCAsmBackend::mayNeedRelaxation(const MCInst &Inst) const {
-  int RelaxedOpcode = Falcon::getRelaxedOpcode(Inst.getOpcode());
+  bool isPCRel;
+  int RelaxedOpcode = Falcon::getRelaxedOpcode(Inst.getOpcode(), isPCRel);
   if (RelaxedOpcode == -1)
     return false;
 
   unsigned RelaxableOp = Inst.getNumOperands() - 1;
-  // XXX should return false here if the operand is not PCRel
   if (!Inst.getOperand(RelaxableOp).isExpr())
-    return true;
+    return isPCRel;;
 
   if (auto FE = dyn_cast<FalconMCExpr>(Inst.getOperand(RelaxableOp).getExpr())) {
     // Do not relax instructions if the mode is forced.

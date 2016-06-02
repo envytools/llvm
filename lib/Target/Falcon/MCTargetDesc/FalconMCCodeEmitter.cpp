@@ -14,7 +14,6 @@
 #include "MCTargetDesc/FalconMCTargetDesc.h"
 #include "MCTargetDesc/FalconMCExpr.h"
 #include "MCTargetDesc/FalconMCFixups.h"
-#include "MCTargetDesc/FalconMCInstrMap.h"
 #include "llvm/MC/MCCodeEmitter.h"
 #include "llvm/MC/MCFixup.h"
 #include "llvm/MC/MCInst.h"

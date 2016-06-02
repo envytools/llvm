@@ -54,6 +54,7 @@ private:
   bool SelectMemRegImm(SDValue Addr, SDValue &Base, SDValue &Offset);
   template<int shift>
   bool SelectMemRegReg(SDValue Addr, SDValue &Base, SDValue &Index);
+  bool SelectMemFI(SDValue Addr, SDValue &FI, SDValue &Offset);
 };
 }
 
@@ -65,26 +66,54 @@ bool FalconDAGToDAGISel::SelectMemReg(SDValue Addr, SDValue &Base) {
   return true;
 }
 
+// ComplexPattern used for Frame Index with offset.
+bool FalconDAGToDAGISel::SelectMemFI(SDValue Addr, SDValue &FI, SDValue &Offset) {
+  SDLoc DL(Addr);
+
+  Offset = CurDAG->getTargetConstant(0, DL, Addr.getValueType());
+
+  if (Addr.getOpcode() == ISD::ADD) {
+    if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1))) {
+      Addr = Addr.getOperand(0);
+      Offset = CurDAG->getTargetConstant(CN->getZExtValue(), SDLoc(CN), Addr.getValueType());
+    }
+  }
+
+  if (FrameIndexSDNode *FIN =
+          dyn_cast<FrameIndexSDNode>(Addr))
+    FI = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
+  else
+    return false;
+
+  return true;
+}
+
 // ComplexPattern used on Falcon LD instruction
 template<int shift, bool zerook>
 bool FalconDAGToDAGISel::SelectMemRegImm(SDValue Addr, SDValue &Base, SDValue &Offset) {
   SDLoc DL(Addr);
+  bool Ok = zerook;
+
+  Base = Addr;
+  Offset = CurDAG->getTargetConstant(0, DL, Addr.getValueType());
 
   if (Addr.getOpcode() == ISD::ADD) {
     if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1))) {
       if (isShiftedUInt<8, shift>(CN->getZExtValue())) {
         Base = Addr.getOperand(0);
         Offset = CurDAG->getTargetConstant(CN->getZExtValue(), SDLoc(CN), Addr.getValueType());
-        return true;
+        Ok = true;
       }
     }
   }
-  if (zerook) {
-    Base = Addr;
-    Offset = CurDAG->getTargetConstant(0, DL, Addr.getValueType());
-    return true;
+
+  if (FrameIndexSDNode *FIN =
+          dyn_cast<FrameIndexSDNode>(Base)) {
+    Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i32);
+    Ok = true;
   }
-  return false;
+
+  return Ok;
 }
 
 // ComplexPattern used on Falcon LD instruction
@@ -119,6 +148,7 @@ bool FalconDAGToDAGISel::SelectMemRegReg(SDValue Addr, SDValue &Base, SDValue &I
 
 void FalconDAGToDAGISel::Select(SDNode *Node) {
   unsigned Opcode = Node->getOpcode();
+  SDLoc DL(Node);
 
   // Dump information about the Node being selected
   DEBUG(dbgs() << "Selecting: "; Node->dump(CurDAG); dbgs() << '\n');
@@ -129,23 +159,26 @@ void FalconDAGToDAGISel::Select(SDNode *Node) {
     return;
   }
 
+#if 0
   // tablegen selection should be handled here.
   switch (Opcode) {
   default: break;
 
-  // XXX
-#if 0
+	   // XXX: replace with complexpattern
   case ISD::FrameIndex: {
     int FI = cast<FrameIndexSDNode>(Node)->getIndex();
     EVT VT = Node->getValueType(0);
     SDValue TFI = CurDAG->getTargetFrameIndex(FI, VT);
-    unsigned Opc = Falcon::MOV_rr;
-    if (Node->hasOneUse())
-      return CurDAG->SelectNodeTo(Node, Opc, VT, TFI);
-    return CurDAG->getMachineNode(Opc, SDLoc(Node), VT, TFI);
+    unsigned Opc = Falcon::MOVrfi;
+    if (Node->hasOneUse()) {
+      CurDAG->SelectNodeTo(Node, Opc, VT, TFI);
+      return;
+    }
+    ReplaceNode(Node, CurDAG->getMachineNode(Opc, DL, VT, TFI));
+    return;
+  }
   }
 #endif
-  }
 
   // Select the default instruction
   SelectCode(Node);

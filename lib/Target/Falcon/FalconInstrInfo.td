@@ -558,6 +558,10 @@ let Defs = [SP], Uses = [SP] in {
                                 "#ADJCALLSTACKUP $amt $amt2", [(callseq_end timm:$amt, timm:$amt2)]>;
 }
 
+let Defs = [CC_C, CC_O, CC_S, CC_Z] in {
+  def MOVrfi : Pseudo<0, (outs GPR32:$dst), (ins memri2:$fi), "mov\t$dst, $fi", [(set GPR32:$dst, memfi:$fi)]>;
+}
+
 // Non-insn patterns
 
 // truncations

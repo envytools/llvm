@@ -35,8 +35,15 @@ FalconRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
 }
 
 BitVector FalconRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
+  const FalconFrameLowering *TFI = getFrameLowering(MF);
   BitVector Reserved(getNumRegs());
-  // XXX
+  if (TFI->hasFP(MF)) {
+    Reserved.set(Falcon::R0);
+    Reserved.set(Falcon::R0H);
+    Reserved.set(Falcon::R0B);
+  }
+  // XXX global GPRs
+  // XXX global PREDs
   Reserved.set(Falcon::IE0);
   Reserved.set(Falcon::IE1);
   Reserved.set(Falcon::SIE0);
@@ -54,9 +61,6 @@ void FalconRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                           int SPAdj, unsigned FIOperandNum,
                                           RegScavenger *RS) const {
   assert(SPAdj == 0 && "Unexpected");
-  // XXX
-
-#if 0
 
   unsigned i = 0;
   MachineInstr &MI = *II;
@@ -68,11 +72,95 @@ void FalconRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     assert(i < MI.getNumOperands() && "Instr doesn't have FrameIndex operand!");
   }
 
-  unsigned FrameReg = getFrameRegister(MF);
+  unsigned FrameReg;
   int FrameIndex = MI.getOperand(i).getIndex();
+  const FalconFrameLowering *TFI = getFrameLowering(MF);
+  int64_t Offset = (TFI->getFrameIndexReference(MF, FrameIndex, FrameReg) +
+                    MI.getOperand(FIOperandNum + 1).getImm());
   const TargetInstrInfo &TII = *MF.getSubtarget().getInstrInfo();
   MachineBasicBlock &MBB = *MI.getParent();
+  unsigned OpcodeSPI8;
+  unsigned reg;
+  bool isStore;
 
+  switch (MI.getOpcode()) {
+  case Falcon::MOVrfi: {
+    reg = MI.getOperand(0).getReg();
+    bool Small = Offset < 0x100;
+
+    if (FrameReg == Falcon::SP) {
+      BuildMI(MBB, ++II, DL, TII.get(Falcon::S2Rrr), reg)
+          .addReg(FrameReg);
+      if (Offset)
+        BuildMI(MBB, II, DL, TII.get(Small ? Falcon::ADDwri8 : Falcon::ADDwri16), reg)
+            .addReg(reg)
+            .addImm(Offset);
+    } else {
+      BuildMI(MBB, II, DL, TII.get(Small ? Falcon::ADDwrri8 : Falcon::ADDwrri16), reg)
+          .addReg(FrameReg)
+          .addImm(Offset);
+    }
+
+    // Remove MOVrfi
+    MI.eraseFromParent();
+    return;
+  }
+
+  case Falcon::STbrmri8:
+    OpcodeSPI8 = Falcon::STbrmspi8;
+    reg = MI.getOperand(2).getReg();
+    isStore = true;
+    break;
+  case Falcon::SThrmri8:
+    OpcodeSPI8 = Falcon::SThrmspi8;
+    reg = MI.getOperand(2).getReg();
+    isStore = true;
+    break;
+  case Falcon::STwrmri8:
+    OpcodeSPI8 = Falcon::STwrmspi8;
+    reg = MI.getOperand(2).getReg();
+    isStore = true;
+    break;
+
+  case Falcon::LDbrmri8:
+    OpcodeSPI8 = Falcon::LDbrmspi8;
+    reg = MI.getOperand(0).getReg();
+    isStore = false;
+    break;
+  case Falcon::LDhrmri8:
+    OpcodeSPI8 = Falcon::LDhrmspi8;
+    reg = MI.getOperand(0).getReg();
+    isStore = false;
+    break;
+  case Falcon::LDwrmri8:
+    OpcodeSPI8 = Falcon::LDwrmspi8;
+    reg = MI.getOperand(0).getReg();
+    isStore = false;
+    break;
+
+  default:
+    llvm_unreachable("frameindex in funny instruction");
+  }
+
+  // XXX: what if it does not fit?
+  if (FrameReg == Falcon::SP) {
+    if (isStore)
+      BuildMI(MBB, ++II, DL, TII.get(OpcodeSPI8))
+          .addImm(Offset)
+          .addReg(reg);
+    else
+      BuildMI(MBB, ++II, DL, TII.get(OpcodeSPI8))
+          .addReg(reg)
+          .addImm(Offset);
+    MI.eraseFromParent();
+  } else {
+    MI.getOperand(FIOperandNum).ChangeToRegister(FrameReg, false);
+    MI.getOperand(FIOperandNum+1).ChangeToImmediate(Offset);
+  }
+
+  // XXX
+
+#if 0
   if (MI.getOpcode() == Falcon::MOV_rr) {
     int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
 
@@ -112,6 +200,6 @@ void FalconRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 }
 
 unsigned FalconRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
-  // XXX
-  return Falcon::SP;
+  const FalconFrameLowering *TFI = getFrameLowering(MF);
+  return TFI->hasFP(MF) ? Falcon::R0 : Falcon::SP;
 }

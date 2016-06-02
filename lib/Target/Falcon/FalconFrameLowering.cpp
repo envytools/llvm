@@ -21,9 +21,35 @@
 
 using namespace llvm;
 
-// XXX
+bool FalconFrameLowering::hasFP(const MachineFunction &MF) const {
+  return MF.getFrameInfo()->hasVarSizedObjects();
+}
 
-bool FalconFrameLowering::hasFP(const MachineFunction &MF) const { return true; }
+int FalconFrameLowering::getFrameIndexReference(const MachineFunction &MF,
+                                                int FI,
+                                                unsigned &FrameReg) const {
+  const MachineFrameInfo *MFFrame = MF.getFrameInfo();
+  const TargetRegisterInfo *RI = MF.getSubtarget().getRegisterInfo();
+
+  // Fill in FrameReg output argument.
+  FrameReg = RI->getFrameRegister(MF);
+
+  // XXX
+  // Start with the offset of FI from the top of the caller-allocated frame
+  // This initial offset is therefore negative.
+  int64_t Offset = (MFFrame->getObjectOffset(FI) +
+                    MFFrame->getOffsetAdjustment());
+
+  // Make the offset relative to the incoming stack pointer.
+  Offset -= getOffsetOfLocalArea();
+
+  // Make the offset relative to the bottom of the frame.
+  Offset += MFFrame->getStackSize();
+
+  return Offset;
+}
+
+// XXX
 
 void FalconFrameLowering::emitPrologue(MachineFunction &MF,
                                     MachineBasicBlock &MBB) const {}
