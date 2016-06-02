@@ -33,8 +33,6 @@ void FalconInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
   printAnnotation(O, Annot);
 }
 
-/* XXX all wrong */
-
 void FalconInstPrinter::printOperand(const MCInst *MI, unsigned OpNum,
                                   raw_ostream &O, const char *Modifier) {
   assert((Modifier == 0 || Modifier[0] == 0) && "No modifiers supported");

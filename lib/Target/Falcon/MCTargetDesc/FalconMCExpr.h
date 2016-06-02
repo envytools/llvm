@@ -61,9 +61,6 @@ public:
   /// getSubExpr - Get the child of this expression.
   const MCExpr *getSubExpr() const { return Expr; }
 
-  /// getFixupKind - Get the fixup kind of this expression.
-  unsigned getFixupKind() const { return getFixupKind(Kind); }
-
   /// @}
   void printImpl(raw_ostream &OS, const MCAsmInfo *MAI) const override;
   bool evaluateAsRelocatableImpl(MCValue &Res,
@@ -84,7 +81,6 @@ public:
 
   static VariantKind parseVariantKind(StringRef name);
   static bool printVariantKind(raw_ostream &OS, VariantKind Kind);
-  static unsigned getFixupKind(VariantKind Kind);
 };
 
 } // end namespace llvm.
