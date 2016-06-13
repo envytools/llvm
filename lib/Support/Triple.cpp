@@ -495,9 +495,9 @@ static Triple::SubArchType parseSubArch(StringRef SubArchName) {
       .EndsWith("kalimba4", Triple::KalimbaSubArch_v4)
       .EndsWith("kalimba5", Triple::KalimbaSubArch_v5)
       .EndsWith("falcon0", Triple::FalconSubArch_v0)
-      .EndsWith("falcon3", Triple::FalconSubArch_v3)
-      .EndsWith("falcon4", Triple::FalconSubArch_v4)
-      .EndsWith("falcon5", Triple::FalconSubArch_v5)
+      .StartsWith("falcon3", Triple::FalconSubArch_v3)
+      .StartsWith("falcon4", Triple::FalconSubArch_v4)
+      .StartsWith("falcon5", Triple::FalconSubArch_v5)
       .Default(Triple::NoSubArch);
 
   // ARM sub arch.
