@@ -21,10 +21,11 @@ def RetCC_Falcon : CallingConv<[
 
 // Falcon C Calling convention.
 def CC_Falcon : CallingConv<[
-  CCIfType<[i1], CCAssignToReg<[P0, P1, P2, P3]>>,
-  CCIfType<[i8], CCAssignToReg<[R10B, R11B, R12B, R13B, R14B, R15B]>>,
-  CCIfType<[i16], CCAssignToReg<[R10H, R11H, R12H, R13H, R14H, R15H]>>,
-  CCIfType<[i32], CCAssignToReg<[R10, R11, R12, R13, R14, R15]>>,
+  CCIfNotVarArg<CCIfType<[i1], CCAssignToReg<[P0, P1, P2, P3]>>>,
+  CCIfNotVarArg<CCIfType<[i1], CCPromoteToType<i32>>>,
+  CCIfNotVarArg<CCIfType<[i8], CCAssignToReg<[R10B, R11B, R12B, R13B, R14B, R15B]>>>,
+  CCIfNotVarArg<CCIfType<[i16], CCAssignToReg<[R10H, R11H, R12H, R13H, R14H, R15H]>>>,
+  CCIfNotVarArg<CCIfType<[i32], CCAssignToReg<[R10, R11, R12, R13, R14, R15]>>>,
   CCAssignToStack<4, 4>
 ]>;
 

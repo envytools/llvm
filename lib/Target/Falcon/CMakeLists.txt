@@ -17,6 +17,7 @@ add_llvm_target(FalconCodeGen
   FalconInstrInfo.cpp
   FalconISelDAGToDAG.cpp
   FalconISelLowering.cpp
+  FalconMachineFunctionInfo.cpp
   FalconMCInstLower.cpp
   FalconRegisterInfo.cpp
   FalconSubtarget.cpp

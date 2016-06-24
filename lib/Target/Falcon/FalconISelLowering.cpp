@@ -14,6 +14,7 @@
 
 #include "FalconISelLowering.h"
 #include "Falcon.h"
+#include "FalconMachineFunctionInfo.h"
 #include "FalconSubtarget.h"
 #include "FalconTargetMachine.h"
 #include "MCTargetDesc/FalconMCExpr.h"
@@ -75,7 +76,7 @@ FalconTargetLowering::FalconTargetLowering(const TargetMachine &TM,
   // XXX FrameIndex
   // XXX ExternalSymbol [?]
 
-  // XXX FRAMEADDR, RETURNADDR
+  // XXX FRAMEADDR
 
   // XXX WRITE_REGISTER [cx]
 
@@ -231,6 +232,31 @@ SDValue FalconTargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG) cons
     SDValue XIn = DAG.getNode(ISD::ANY_EXTEND, DL, VT, In);
     return DAG.getNode(ISD::SIGN_EXTEND_INREG, DL, VT, XIn, DAG.getValueType(SVT));
   }
+  case ISD::RETURNADDR: {
+    MachineFunction &MF = DAG.getMachineFunction();
+    MachineFrameInfo *MFI = MF.getFrameInfo();
+    MFI->setReturnAddressIsTaken(true);
+    FalconMachineFunctionInfo *FuncInfo =
+        MF.getInfo<FalconMachineFunctionInfo>();
+
+    if (verifyReturnAddressArgumentIsConstant(Op, DAG))
+      return SDValue();
+
+    SDLoc DL(Op);
+    unsigned Depth = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
+    EVT PtrVT = getPointerTy(DAG.getDataLayout());
+
+    // FIXME The frontend should detect this case.
+    if (Depth > 0) {
+      report_fatal_error("Unsupported stack frame traversal count");
+    }
+
+    // Just load the return address.
+    int RetAddrIdx = FuncInfo->getReturnAddrFrameIndex();
+    SDValue RetAddrFI = DAG.getFrameIndex(RetAddrIdx, PtrVT);
+    return DAG.getLoad(PtrVT, DL, DAG.getEntryNode(),
+                       RetAddrFI, MachinePointerInfo(), false, false, false, 0);
+  }
   case ISD::GlobalAddress: {
     // XXX nuke offsets
     const GlobalAddressSDNode *GN = cast<GlobalAddressSDNode>(Op);
@@ -363,62 +389,69 @@ SDValue FalconTargetLowering::LowerFormalArguments(
   }
 
   MachineFunction &MF = DAG.getMachineFunction();
+  MachineFrameInfo *MFI = MF.getFrameInfo();
   MachineRegisterInfo &RegInfo = MF.getRegInfo();
+  FalconMachineFunctionInfo *FuncInfo =
+      MF.getInfo<FalconMachineFunctionInfo>();
 
   // Assign locations to all of the incoming arguments.
   SmallVector<CCValAssign, 16> ArgLocs;
   CCState CCInfo(CallConv, IsVarArg, MF, ArgLocs, *DAG.getContext());
   CCInfo.AnalyzeFormalArguments(Ins, CC_Falcon);
-  // XXX
 
   for (auto &VA : ArgLocs) {
+    SDValue ArgValue;
+    EVT LocVT = VA.getLocVT();
     if (VA.isRegLoc()) {
       // Arguments passed in registers
+      const TargetRegisterClass *RC;
       EVT RegVT = VA.getLocVT();
       switch (RegVT.getSimpleVT().SimpleTy) {
-      default: {
-        errs() << "LowerFormalArguments Unhandled argument type: "
-               << RegVT.getEVTString() << '\n';
-        llvm_unreachable(0);
-      }
-	       // XXX
-      case MVT::i1: {
-        unsigned VReg = RegInfo.createVirtualRegister(&Falcon::PREDRegClass);
-        RegInfo.addLiveIn(VA.getLocReg(), VReg);
-        SDValue ArgValue = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
-        InVals.push_back(ArgValue);
+      default:
+        llvm_unreachable("Unexpected argument type");
+      case MVT::i1:
+        RC = &Falcon::PREDRegClass;
+        break;
+      case MVT::i8:
+        RC = &Falcon::GPR8RegClass;
+        break;
+      case MVT::i16:
+        RC = &Falcon::GPR16RegClass;
+        break;
+      case MVT::i32:
+        RC = &Falcon::GPR32RegClass;
         break;
       }
-      case MVT::i8: {
-        unsigned VReg = RegInfo.createVirtualRegister(&Falcon::GPR8RegClass);
-        RegInfo.addLiveIn(VA.getLocReg(), VReg);
-        SDValue ArgValue = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
-        InVals.push_back(ArgValue);
-        break;
-      }
-      case MVT::i16: {
-        unsigned VReg = RegInfo.createVirtualRegister(&Falcon::GPR16RegClass);
-        RegInfo.addLiveIn(VA.getLocReg(), VReg);
-        SDValue ArgValue = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
-        InVals.push_back(ArgValue);
-        break;
-      }
-      case MVT::i32: {
-        unsigned VReg = RegInfo.createVirtualRegister(&Falcon::GPR32RegClass);
-        RegInfo.addLiveIn(VA.getLocReg(), VReg);
-        SDValue ArgValue = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
-        InVals.push_back(ArgValue);
-        break;
-      }
-      }
+      unsigned VReg = RegInfo.createVirtualRegister(RC);
+      RegInfo.addLiveIn(VA.getLocReg(), VReg);
+      ArgValue = DAG.getCopyFromReg(Chain, DL, VReg, RegVT);
     } else {
-      fail(DL, DAG, "defined with too many args");
+      assert(VA.isMemLoc() && "Argument not register or memory");
+
+      // Create the frame index object for this incoming parameter.
+      int FI = MFI->CreateFixedObject(LocVT.getSizeInBits() / 8,
+                                      VA.getLocMemOffset() + 4, true);
+
+      // Create the SelectionDAG nodes corresponding to a load
+      // from this parameter.  Unpromoted ints and bools are
+      // passed as right-justified 4-byte values.
+      SDValue FIN = DAG.getFrameIndex(FI, MVT::i32);
+      ArgValue = DAG.getLoad(LocVT, DL, Chain, FIN,
+                             MachinePointerInfo::getFixedStack(MF, FI), false,
+                             false, false, 0);
     }
+    InVals.push_back(ArgValue);
   }
 
-  if (IsVarArg || MF.getFunction()->hasStructRetAttr()) {
-    fail(DL, DAG, "functions with VarArgs or StructRet are not supported");
+  if (IsVarArg) {
+    // Save the address (in the form of a frame index) of where the
+    // first stack vararg would be.  The 1-byte size here is arbitrary.
+    int64_t StackSize = CCInfo.getNextStackOffset();
+    FuncInfo->setVarArgsFrameIndex(MFI->CreateFixedObject(1, StackSize + 4, true));
   }
+
+  // Create the return address stack slot.
+  FuncInfo->setReturnAddrFrameIndex(MFI->CreateFixedObject(4, 0, true));
 
   return Chain;
 }
